@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>我的班表</title></head><body><title>我的班表</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>我的班表</title></head><body><title>我的班表</title>
 <style>
   :root{
     --bg:#f4f6f9; --surface:#ffffff; --surface-2:#eef1f6; --surface-3:#e6eaf1;
@@ -222,6 +222,56 @@
   .btn-danger:hover{background:#e0492f;color:#fff;border-color:#e0492f}
   .hint{font-size:12px;color:var(--text-mute);margin-top:8px;line-height:1.6}
 
+  /* ---------- empty cell ---------- */
+  .cell-empty{color:var(--text-mute);opacity:.3;text-align:center;font-size:13px;padding:9px 0;user-select:none}
+  .mcell .cell-empty{padding:7px 0;font-size:12px}
+
+  /* ---------- to-do lists ---------- */
+  .todo{max-width:1180px;margin:22px auto 0;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
+  .todo-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .todo-head h3{margin:0;font-size:16px;font-weight:750;margin-right:auto}
+  .tt-btn{background:#4a8f7a;border-color:transparent;color:#fff;font-size:13px;padding:7px 12px;
+    text-decoration:none;white-space:nowrap}
+  .tt-btn:hover{filter:brightness(1.08);background:#4a8f7a}
+  .todo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  .todo-empty{color:var(--text-mute);font-size:13px;padding:8px 2px}
+  .todo-item{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid var(--border)}
+  .todo-item:last-child{border-bottom:0}
+  .todo-check{display:flex;align-items:center;gap:11px;flex:1;cursor:pointer;min-width:0}
+  .todo-check input{width:19px;height:19px;flex:0 0 19px;accent-color:var(--accent);cursor:pointer}
+  .todo-text{font-size:14.5px;line-height:1.4;word-break:break-word}
+  .todo-text.done{text-decoration:line-through;color:var(--text-mute)}
+  .todo-del{flex:0 0 30px;width:30px;height:30px;font-size:12px}
+  .todo-add{display:flex;gap:8px;margin-top:12px}
+  .todo-add .todo-input{flex:1}
+  .todo-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;
+    font-size:12px;color:var(--text-mute)}
+  .todo-clear{appearance:none;border:1px solid var(--border-strong);background:var(--surface);
+    color:var(--text-dim);font:inherit;font-size:12px;font-weight:600;border-radius:8px;padding:5px 10px;cursor:pointer}
+  .todo-clear:hover{background:var(--surface-2)}
+  .drawer-todo{margin-top:14px}
+  .todo-mini-title{font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:6px}
+  .drawer-todo .todo-text{font-size:14px}
+
+  /* ---------- 新增行程 modal ---------- */
+  .ev-scrim{position:fixed;inset:0;background:rgba(10,14,22,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+  .ev-scrim.open{opacity:1;pointer-events:auto}
+  .ev-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.98);opacity:0;pointer-events:none;
+    width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 40px);overflow-y:auto;z-index:70;
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(10,14,22,.45);
+    transition:opacity .2s,transform .2s}
+  .ev-modal.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .ev-head{display:flex;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border)}
+  .ev-head h2{margin:0;font-size:17px;font-weight:700;margin-right:auto}
+  .ev-body{padding:18px;display:flex;flex-direction:column;gap:12px}
+  .ev-field{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--text-dim)}
+  .ev-field .field{font-weight:500;color:var(--text)}
+  .ev-newwrap{display:flex;flex-direction:column;gap:12px;padding:12px;border:1px dashed var(--border-strong);border-radius:10px}
+  .ev-hint{font-size:12px;color:var(--text-mute);margin:2px 0 0}
+  .ev-actions{display:flex;gap:10px;margin-top:6px}
+  .ev-actions .btn{flex:1;justify-content:center}
+
   @media (max-width:560px){
     .brand h1{font-size:17px}
     .seg button{padding:6px 11px;font-size:13px}
@@ -230,7 +280,7 @@
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
   @media print{
-    .topbar,.drawer,.scrim,.cell-add,.chip-x,.day-nav{display:none!important}
+    .topbar,.drawer,.scrim,.cell-add,.chip-x,.day-nav,.todo,.ev-scrim,.ev-modal{display:none!important}
     .app{background:#fff}
     .table-wrap{overflow:visible;box-shadow:none}
     .chip-select{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -247,7 +297,8 @@
     <div class="topbar-actions">
       <div class="seg" id="viewToggle"></div>
       <button class="btn btn-ghost btn-icon" id="themeBtn" title="切換深色/淺色" aria-label="切換主題">🌓</button>
-      <button class="btn btn-primary" id="manageBtn">管理</button>
+      <button class="btn btn-primary" id="addEventBtn" title="新增行程">＋ 行程</button>
+      <button class="btn" id="manageBtn">管理</button>
     </div>
   </header>
   <main id="main"></main>
@@ -262,6 +313,12 @@
   </div>
   <div class="drawer-body" id="drawerBody"></div>
 </aside>
+
+<div class="ev-scrim" id="evScrim"></div>
+<div class="ev-modal" id="evModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="ev-head"><h2>新增行程</h2><button class="btn btn-ghost btn-icon" id="evClose" aria-label="關閉">✕</button></div>
+  <div class="ev-body" id="evBody"></div>
+</div>
 
 <input type="file" id="importFile" accept="application/json,.json" style="display:none">
 
@@ -319,7 +376,10 @@
       notes:{
         todo:'俊瑋高一物理家教\n士林國九理化輔導\n天母國八理化輔導',
         memo:'禹安暑期家教 7/19 20 26 27 晚上18:30\n桓安家教 晚上19-21 早上10-12\n曜嘉家教 晚上18:30-20:30'
-      }
+      },
+      todos:{weekly:[],daily:{Mon:[],Tue:[],Wed:[],Thu:[],Fri:[],Sat:[],Sun:[]}},
+      todoSeq:1,
+      timetreeUrl:'https://timetreeapp.com/calendars'
     };
   }
 
@@ -353,6 +413,12 @@
       });
       d.seq=seq; d.v=4;
     }
+    if(!d.todos) d.todos={weekly:[],daily:{}};
+    if(!d.todos.weekly) d.todos.weekly=[];
+    if(!d.todos.daily) d.todos.daily={};
+    DAYS.forEach(function(dd){ if(!d.todos.daily[dd[0]]) d.todos.daily[dd[0]]=[]; });
+    if(typeof d.todoSeq!=='number') d.todoSeq=1;
+    if(!d.timetreeUrl) d.timetreeUrl='https://timetreeapp.com/calendars';
     return d;
   }
   function save(){
@@ -375,12 +441,36 @@
   function catColor(key){ var c=state.data.categories[key]; return c?c.color:'#8a93a5'; }
   function grid(){ return state.data.schedules[state.ui.season].grid; }
 
+  // 依「筆劃」排序(繁中 stroke 排序),失敗時退回一般排序
+  var strokeCollator=(function(){
+    try{ return new Intl.Collator('zh-Hant-u-co-stroke'); }
+    catch(e){ try{ return new Intl.Collator('zh-Hant'); }
+      catch(e2){ return {compare:function(a,b){return a<b?-1:(a>b?1:0);}}; } }
+  })();
+  function byStroke(a,b){ return strokeCollator.compare(a.name||'',b.name||''); }
+  // 依分類(標籤顏色)分組、組內依筆劃排序
+  function orderedCourses(){
+    var out=[];
+    state.data.categoryOrder.forEach(function(k){
+      out=out.concat(state.data.courses.filter(function(c){return c.category===k;}).slice().sort(byStroke));
+    });
+    state.data.courses.forEach(function(c){ if(state.data.categoryOrder.indexOf(c.category)<0) out.push(c); });
+    return out;
+  }
+  function dayZh(code){ for(var i=0;i<DAYS.length;i++){ if(DAYS[i][0]===code) return DAYS[i][1]; } return ''; }
+  function todoList(scope){
+    if(scope==='weekly') return state.data.todos.weekly;
+    var day=scope.split(':')[1];
+    if(!state.data.todos.daily[day]) state.data.todos.daily[day]=[];
+    return state.data.todos.daily[day];
+  }
+
   /* ---- cell / chip rendering ---- */
   function courseOptions(selected){
     var h='';
     state.data.categoryOrder.forEach(function(k){
       var cat=state.data.categories[k]; if(!cat) return;
-      var items=state.data.courses.filter(function(c){return c.category===k;});
+      var items=state.data.courses.filter(function(c){return c.category===k;}).slice().sort(byStroke);
       if(!items.length) return;
       h+='<optgroup label="'+esc(cat.label)+'">';
       items.forEach(function(c){
@@ -401,9 +491,9 @@
   }
   function cellInner(sch,slot,day){
     var arr=(grid()[slot]&&grid()[slot][day])||[];
+    if(!arr.length) return '<div class="cell-empty">·</div>';
     var h='';
     arr.forEach(function(cid,i){ h+=chipHtml(sch,slot,day,i,cid); });
-    h+='<button class="cell-add'+(arr.length?' filled':'')+'" data-add="'+sch+'|'+slot+'|'+day+'">＋ 新增</button>';
     return h;
   }
 
@@ -468,11 +558,37 @@
     });
     el.innerHTML=h;
   }
+  function renderTodo(scope){
+    var list=todoList(scope);
+    var title= scope==='weekly'?'本週待辦':('週'+dayZh(scope.split(':')[1])+'待辦');
+    var url=state.data.timetreeUrl||'https://timetreeapp.com/calendars';
+    var h='<section class="todo todo-section"><div class="todo-head">'+
+      '<h3>📋 '+title+'</h3>'+
+      '<a class="btn tt-btn" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">📆 連動 TimeTree</a>'+
+      '</div><ul class="todo-list">';
+    if(!list.length) h+='<li class="todo-empty">目前沒有待辦，從下方新增。</li>';
+    list.forEach(function(it){
+      h+='<li class="todo-item"><label class="todo-check">'+
+        '<input type="checkbox" data-todotoggle="'+scope+'|'+it.id+'"'+(it.done?' checked':'')+'>'+
+        '<span class="todo-text'+(it.done?' done':'')+'">'+esc(it.text)+'</span></label>'+
+        '<button class="icon-btn todo-del" data-tododel="'+scope+'|'+it.id+'" aria-label="刪除">✕</button></li>';
+    });
+    h+='</ul><div class="todo-add">'+
+      '<input class="field todo-input" data-todoinput="'+scope+'" placeholder="新增待辦事項…" maxlength="120">'+
+      '<button class="btn btn-primary" data-todoadd="'+scope+'">加入</button></div>';
+    var doneN=list.filter(function(x){return x.done;}).length;
+    h+='<div class="todo-foot"><span>打勾即畫線 · 一週更新一次</span>'+
+      (doneN?'<button class="todo-clear" data-todoclear="'+scope+'">清除已完成 ('+doneN+')</button>':'')+
+      '</div></section>';
+    return h;
+  }
   function renderMain(){
     var sch=state.data.schedules[state.ui.season];
     var head='<div class="view-head"><h2>'+esc(sch.title)+'</h2><span>'+
       (state.ui.view==='week'?'一週總覽':'單日檢視')+'</span></div>';
-    document.getElementById('main').innerHTML=head+(state.ui.view==='week'?renderWeek():renderDay());
+    var bodyHtml=(state.ui.view==='week'?renderWeek():renderDay());
+    var todoHtml=(state.ui.view==='week'?renderTodo('weekly'):renderTodo('day:'+state.ui.day));
+    document.getElementById('main').innerHTML=head+bodyHtml+todoHtml;
     document.getElementById('brandSub').textContent='';
   }
   function render(){
@@ -497,9 +613,9 @@
         '</div>';
     });
     h+='</div>';
-    // courses
-    h+='<div class="sect"><h3>課程清單</h3><p>重新命名、換類別或刪除；也可在下方新增。</p>';
-    d.courses.forEach(function(c){
+    // courses（依標籤顏色分組、組內依筆劃排序）
+    h+='<div class="sect"><h3>課程清單</h3><p>依分類顏色分組、組內依筆劃排序。可重新命名、換類別或刪除。</p>';
+    orderedCourses().forEach(function(c){
       h+='<div class="course-row">'+
         '<span class="swatch" style="background:'+catColor(c.category)+'"></span>'+
         '<input class="field" data-cname="'+c.id+'" value="'+esc(c.name)+'">'+
@@ -516,6 +632,23 @@
       }).join('')+'</select>'+
       '<button class="btn btn-primary" id="addCourse">新增</button>'+
       '</div></div>';
+    // todo + timetree
+    h+='<div class="sect"><h3>待辦清單 · TimeTree</h3>'+
+      '<label class="ev-field" style="margin-bottom:10px"><span>TimeTree 連結</span>'+
+      '<input class="field" data-timetree value="'+esc(d.timetreeUrl||'')+'" placeholder="https://timetreeapp.com/..."></label>'+
+      '<a class="btn tt-btn" href="'+esc(d.timetreeUrl||'https://timetreeapp.com/calendars')+'" target="_blank" rel="noopener noreferrer">📆 開啟 TimeTree</a>';
+    h+='<div class="todo-section drawer-todo"><div class="todo-mini-title">本週待辦</div><ul class="todo-list">';
+    if(!d.todos.weekly.length) h+='<li class="todo-empty">尚無項目</li>';
+    d.todos.weekly.forEach(function(it){
+      h+='<li class="todo-item"><label class="todo-check">'+
+        '<input type="checkbox" data-todotoggle="weekly|'+it.id+'"'+(it.done?' checked':'')+'>'+
+        '<span class="todo-text'+(it.done?' done':'')+'">'+esc(it.text)+'</span></label>'+
+        '<button class="icon-btn todo-del" data-tododel="weekly|'+it.id+'" aria-label="刪除">✕</button></li>';
+    });
+    h+='</ul><div class="todo-add">'+
+      '<input class="field todo-input" data-todoinput="weekly" placeholder="新增本週待辦…" maxlength="120">'+
+      '<button class="btn btn-primary" data-todoadd="weekly">加入</button></div>'+
+      '<p class="hint">每日待辦請在「日」檢視畫面下方各自新增。</p></div></div>';
     // notes
     h+='<div class="sect"><h3>待確認</h3>'+
       '<textarea class="field" data-note="todo" rows="4">'+esc(d.notes.todo)+'</textarea></div>';
@@ -541,6 +674,53 @@
     if(open) renderDrawer();
   }
 
+  /* ---- 新增行程 modal ---- */
+  function renderEventModal(){
+    var d=state.data;
+    var dayOpts=DAYS.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===state.ui.day?' selected':'')+'>週'+x[1]+'</option>';}).join('');
+    var slotOpts=SLOTS.map(function(s){return '<option value="'+s[0]+'">'+esc(slotFull(s[1]))+'</option>';}).join('');
+    var catOpts=d.categoryOrder.map(function(k){return '<option value="'+k+'">'+esc(d.categories[k].label)+'</option>';}).join('');
+    var h='';
+    h+='<label class="ev-field"><span>星期</span><select class="field" id="evDay">'+dayOpts+'</select></label>';
+    h+='<label class="ev-field"><span>時段</span><select class="field" id="evSlot">'+slotOpts+'</select></label>';
+    var oc=orderedCourses(); var firstId=oc.length?oc[0].id:'__new__';
+    h+='<label class="ev-field"><span>課程</span><select class="field" id="evCourse">'+
+      '<option value="__new__">＋ 自訂新課程…</option>'+courseOptions(firstId)+'</select></label>';
+    h+='<div id="evNewWrap" class="ev-newwrap">'+
+      '<label class="ev-field"><span>新課名</span><input class="field" id="evNewName" placeholder="輸入課程名稱…" maxlength="40"></label>'+
+      '<label class="ev-field"><span>分類標籤</span><select class="field" id="evNewCat">'+catOpts+'</select></label>'+
+      '</div>';
+    h+='<p class="ev-hint">將加入到目前的「'+esc(d.schedules[state.ui.season].title)+'」。</p>';
+    h+='<div class="ev-actions"><button class="btn" id="evCancel">取消</button>'+
+      '<button class="btn btn-primary" id="evSubmit">加入行程</button></div>';
+    document.getElementById('evBody').innerHTML=h;
+    var sel=document.getElementById('evCourse');
+    document.getElementById('evNewWrap').style.display = (sel.value==='__new__')?'block':'none';
+  }
+  function openEventModal(open){
+    document.getElementById('evModal').classList.toggle('open',open);
+    document.getElementById('evScrim').classList.toggle('open',open);
+    document.getElementById('evModal').setAttribute('aria-hidden',open?'false':'true');
+    if(open){ renderEventModal();
+      var f=document.getElementById('evDay'); if(f) f.focus();
+    }
+  }
+  function submitEvent(){
+    var day=document.getElementById('evDay').value;
+    var slot=document.getElementById('evSlot').value;
+    var courseVal=document.getElementById('evCourse').value;
+    var cid;
+    if(courseVal==='__new__'){
+      var nm=document.getElementById('evNewName').value.trim();
+      if(!nm){ document.getElementById('evNewName').focus(); return; }
+      var cat=document.getElementById('evNewCat').value;
+      cid='c'+(state.data.seq++);
+      state.data.courses.push({id:cid,name:nm,category:cat});
+    } else { cid=courseVal; }
+    state.data.schedules[state.ui.season].grid[slot][day].push(cid);
+    save(); openEventModal(false); render();
+  }
+
   /* ---- mutations ---- */
   function parseKey(k){ var p=k.split('|'); return {sch:p[0],slot:p[1],day:p[2],idx:parseInt(p[3],10)}; }
 
@@ -556,6 +736,12 @@
     } else if(t.hasAttribute('data-ccat')){
       var c=getCourse(t.getAttribute('data-ccat')); if(c){ c.category=t.value; }
       save(); renderMain(); renderDrawer();
+    } else if(t.id==='evCourse'){
+      var w=document.getElementById('evNewWrap'); if(w) w.style.display = t.value==='__new__'?'block':'none';
+    } else if(t.hasAttribute('data-todotoggle')){
+      var tt=t.getAttribute('data-todotoggle').split('|'); var l=todoList(tt[0]);
+      for(var i=0;i<l.length;i++){ if(l[i].id===tt[1]){ l[i].done=t.checked; break; } }
+      save(); renderMain(); if(state.ui.drawer) renderDrawer();
     }
   });
 
@@ -570,22 +756,52 @@
     } else if(t.hasAttribute('data-note')){
       state.data.notes[t.getAttribute('data-note')]=t.value;
       save();
+    } else if(t.hasAttribute('data-timetree')){
+      state.data.timetreeUrl=t.value.trim(); save();
+    }
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Enter' && e.target && e.target.classList && e.target.classList.contains('todo-input')){
+      e.preventDefault();
+      var box=e.target.closest('.todo-section');
+      var btn=box?box.querySelector('[data-todoadd]'):null; if(btn) btn.click();
+    } else if(e.key==='Escape'){
+      if(document.getElementById('evModal').classList.contains('open')) openEventModal(false);
+      else if(state.ui.drawer) openDrawer(false);
     }
   });
 
   document.addEventListener('click',function(e){
-    var t=e.target.closest('[data-season],[data-view],[data-day],[data-add],[data-x],[data-cdel],#manageBtn,#closeDrawer,#scrim,#addCourse,#exportBtn,#importBtn,#printBtn,#resetBtn,#themeBtn');
+    var t=e.target.closest('[data-season],[data-view],[data-day],[data-x],[data-cdel],[data-tododel],[data-todoadd],[data-todoclear],#manageBtn,#closeDrawer,#scrim,#addCourse,#exportBtn,#importBtn,#printBtn,#resetBtn,#themeBtn,#addEventBtn,#evClose,#evCancel,#evScrim,#evSubmit');
     if(!t) return;
 
     if(t.hasAttribute('data-season')){ state.ui.season=t.getAttribute('data-season'); saveUI(); render(); }
     else if(t.hasAttribute('data-view')){ state.ui.view=t.getAttribute('data-view'); saveUI(); render(); }
     else if(t.hasAttribute('data-day')){ state.ui.day=t.getAttribute('data-day'); saveUI(); renderMain(); }
-    else if(t.hasAttribute('data-add')){
-      var a=t.getAttribute('data-add').split('|');
-      var first=state.data.courses[0];
-      if(!first){ alert('請先在「管理」中新增課程'); return; }
-      state.data.schedules[a[0]].grid[a[1]][a[2]].push(first.id);
-      save(); renderMain();
+    else if(t.id==='addEventBtn'){ openEventModal(true); }
+    else if(t.id==='evClose'||t.id==='evCancel'||t.id==='evScrim'){ openEventModal(false); }
+    else if(t.id==='evSubmit'){ submitEvent(); }
+    else if(t.hasAttribute('data-tododel')){
+      var td=t.getAttribute('data-tododel').split('|'); var arr=todoList(td[0]);
+      for(var i=0;i<arr.length;i++){ if(arr[i].id===td[1]){ arr.splice(i,1); break; } }
+      save(); renderMain(); if(state.ui.drawer) renderDrawer();
+    }
+    else if(t.hasAttribute('data-todoadd')){
+      var scope=t.getAttribute('data-todoadd');
+      var box=t.closest('.todo-section'); var inp=box?box.querySelector('.todo-input'):null;
+      var txt=inp?inp.value.trim():'';
+      if(!txt){ if(inp) inp.focus(); return; }
+      var inDrawer = !!(box && box.closest('#drawerBody'));
+      todoList(scope).push({id:'t'+(state.data.todoSeq++),text:txt,done:false});
+      save(); renderMain(); if(state.ui.drawer) renderDrawer();
+      var again=document.querySelector(inDrawer?'#drawerBody .todo-input':'main .todo-input'); if(again) again.focus();
+    }
+    else if(t.hasAttribute('data-todoclear')){
+      var sc=t.getAttribute('data-todoclear'); var a2=todoList(sc);
+      var kept=a2.filter(function(x){return !x.done;}); a2.length=0;
+      kept.forEach(function(x){a2.push(x);});
+      save(); renderMain(); if(state.ui.drawer) renderDrawer();
     }
     else if(t.hasAttribute('data-x')){
       var k=parseKey(t.getAttribute('data-x'));
