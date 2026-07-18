@@ -1,0 +1,643 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>我的班表</title></head><body><title>我的班表</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --surface:#ffffff; --surface-2:#eef1f6; --surface-3:#e6eaf1;
+    --border:#dce1ea; --border-strong:#c7cdd9;
+    --text:#1c222c; --text-dim:#586074; --text-mute:#8a93a5;
+    --accent:#2f7fce; --shadow:0 1px 2px rgba(20,30,50,.06),0 6px 20px rgba(20,30,50,.07);
+    --weekend:#f7ede9;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1218; --surface:#171b23; --surface-2:#1e2430; --surface-3:#262d3b;
+      --border:#2a323f; --border-strong:#3a4454;
+      --text:#e7ebf2; --text-dim:#a3adc0; --text-mute:#6d7789;
+      --accent:#5aa0ec; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+      --weekend:#231c1c;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f6f9; --surface:#ffffff; --surface-2:#eef1f6; --surface-3:#e6eaf1;
+    --border:#dce1ea; --border-strong:#c7cdd9;
+    --text:#1c222c; --text-dim:#586074; --text-mute:#8a93a5;
+    --accent:#2f7fce; --shadow:0 1px 2px rgba(20,30,50,.06),0 6px 20px rgba(20,30,50,.07);
+    --weekend:#f7ede9;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1218; --surface:#171b23; --surface-2:#1e2430; --surface-3:#262d3b;
+    --border:#2a323f; --border-strong:#3a4454;
+    --text:#e7ebf2; --text-dim:#a3adc0; --text-mute:#6d7789;
+    --accent:#5aa0ec; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    --weekend:#231c1c;
+  }
+
+  *{box-sizing:border-box}
+  body,.app{margin:0}
+  .app{
+    min-height:100vh;background:var(--bg);color:var(--text);
+    font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surface) 88%,transparent);
+    backdrop-filter:saturate(1.2) blur(10px);border-bottom:1px solid var(--border);
+    display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;
+    padding:12px clamp(14px,4vw,28px);
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+  .brand-dot{width:11px;height:11px;border-radius:3px;background:
+    conic-gradient(from 210deg,#2f7fce,#2f9079,#d98a2b,#a8386b,#2f7fce);}
+  .brand h1{font-size:19px;font-weight:700;margin:0;letter-spacing:.5px}
+  .brand small{color:var(--text-mute);font-size:12px;font-weight:500;margin-left:2px}
+
+  .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:11px;padding:3px;gap:2px}
+  .seg button{
+    appearance:none;border:0;background:transparent;color:var(--text-dim);
+    font:inherit;font-size:14px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;
+    transition:background .15s,color .15s;white-space:nowrap;
+  }
+  .seg button.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+  .seg button:hover:not(.active){color:var(--text)}
+
+  .topbar-actions{display:flex;align-items:center;gap:8px}
+  .btn{
+    appearance:none;font:inherit;font-weight:600;font-size:14px;cursor:pointer;
+    border-radius:10px;padding:8px 14px;border:1px solid var(--border-strong);
+    background:var(--surface);color:var(--text);transition:transform .08s,background .15s,border-color .15s;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:hover{background:var(--surface-2)}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);border-color:transparent;color:#fff}
+  .btn-primary:hover{filter:brightness(1.06);background:var(--accent)}
+  .btn-icon{padding:8px 10px}
+  .btn-ghost{background:transparent;border-color:transparent}
+  .btn-ghost:hover{background:var(--surface-2)}
+
+  main{padding:clamp(14px,3.5vw,26px);max-width:1180px;margin:0 auto}
+  .view-head{display:flex;align-items:baseline;gap:10px;margin:2px 2px 16px}
+  .view-head h2{margin:0;font-size:22px;font-weight:750;letter-spacing:.4px}
+  .view-head span{color:var(--text-mute);font-size:13px}
+
+  /* ---------- week grid ---------- */
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--surface);box-shadow:var(--shadow)}
+  table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
+  table.grid th,table.grid td{border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+  table.grid thead th{
+    position:sticky;top:0;background:var(--surface-2);z-index:2;
+    font-size:13px;font-weight:700;color:var(--text-dim);padding:11px 8px;text-align:center;
+  }
+  table.grid thead th.weekend{color:#b06a4a}
+  .corner{left:0;z-index:3!important;position:sticky!important}
+  th.slot-th{
+    position:sticky;left:0;z-index:1;background:var(--surface-2);
+    width:52px;min-width:52px;text-align:center;font-weight:700;color:var(--text-dim);
+    font-size:15px;padding:8px;
+  }
+  table.grid td{padding:7px;vertical-align:top;background:var(--surface)}
+  table.grid td.we{background:var(--weekend)}
+  table.grid tr:last-child th,table.grid tr:last-child td{border-bottom:0}
+  table.grid th:last-child,table.grid td:last-child{border-right:0}
+
+  .cell{display:flex;flex-direction:column;gap:6px;min-height:44px}
+
+  /* ---------- chips (course dropdowns) ---------- */
+  .chip{display:flex;align-items:stretch;border-radius:9px;overflow:hidden;box-shadow:var(--shadow)}
+  .chip-select{
+    appearance:none;-webkit-appearance:none;flex:1;min-width:0;
+    background-color:var(--chip);color:#fff;border:0;cursor:pointer;
+    font:inherit;font-size:13.5px;font-weight:600;line-height:1.25;
+    padding:8px 26px 8px 11px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1.2l4.5 4.4 4.5-4.4' stroke='white' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 9px center;
+    text-shadow:0 1px 1px rgba(0,0,0,.18);
+  }
+  .chip-select:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+  .chip-x{
+    appearance:none;border:0;cursor:pointer;color:#fff;
+    background:rgba(0,0,0,.22);width:26px;flex:0 0 26px;font-size:12px;
+  }
+  .chip-x:hover{background:rgba(0,0,0,.38)}
+  .cell-add{
+    appearance:none;border:1.5px dashed var(--border-strong);background:transparent;
+    color:var(--text-mute);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+    border-radius:9px;padding:7px;transition:border-color .15s,color .15s,background .15s;
+  }
+  .cell-add:hover{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+  .cell:not(:hover) .cell-add.filled{opacity:.55}
+  .cell-add.filled{border-style:solid;border-width:1px}
+
+  /* ---------- day view ---------- */
+  .day-nav{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .day-pill{
+    appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);
+    font:inherit;font-weight:700;font-size:15px;cursor:pointer;border-radius:12px;
+    width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow);transition:transform .08s,background .15s;flex:1 1 auto;
+  }
+  .day-pill.we{color:#b06a4a}
+  .day-pill.active{background:var(--accent);border-color:transparent;color:#fff}
+  .day-pill:active{transform:translateY(1px)}
+  .day-slots{display:grid;gap:14px}
+  .slot-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px 16px}
+  .slot-card h3{margin:0 0 12px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;color:var(--text-dim)}
+  .slot-badge{background:var(--surface-3);color:var(--text);border-radius:8px;padding:2px 10px;font-size:14px}
+  .slot-cell{display:flex;flex-direction:column;gap:8px}
+  .slot-cell .chip-select{font-size:15px;padding:11px 30px 11px 13px}
+  .slot-cell .chip-x{width:34px;flex-basis:34px}
+  .slot-cell .cell-add{padding:11px;font-size:14px}
+
+  /* ---------- legend ---------- */
+  .legend{max-width:1180px;margin:6px auto 40px;padding:0 clamp(14px,3.5vw,26px);
+    display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+  .legend-title{font-size:12px;font-weight:700;color:var(--text-mute);letter-spacing:1px;text-transform:uppercase}
+  .legend-item{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-dim);font-weight:600}
+  .legend-swatch{width:14px;height:14px;border-radius:4px}
+
+  /* ---------- drawer ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(10,14,22,.5);opacity:0;pointer-events:none;
+    transition:opacity .22s;z-index:40}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .drawer{
+    position:fixed;top:0;right:0;height:100dvh;width:min(440px,100vw);z-index:50;
+    background:var(--surface);border-left:1px solid var(--border);box-shadow:-10px 0 40px rgba(10,14,22,.25);
+    transform:translateX(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+  }
+  .drawer.open{transform:none}
+  .drawer-head{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border)}
+  .drawer-head h2{margin:0;font-size:17px;font-weight:700;margin-right:auto}
+  .drawer-body{overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:26px}
+  .sect > h3{margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.6px;color:var(--text-dim);text-transform:uppercase}
+  .sect > p{margin:0 0 12px;font-size:12.5px;color:var(--text-mute)}
+
+  .cat-row{display:flex;align-items:center;gap:10px;padding:7px 0}
+  .cat-row input[type=color]{width:34px;height:34px;border:1px solid var(--border);border-radius:9px;
+    background:none;cursor:pointer;padding:2px}
+  .field{width:100%;font:inherit;font-size:14px;color:var(--text);background:var(--surface-2);
+    border:1px solid var(--border);border-radius:9px;padding:9px 11px}
+  .field:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+  select.field{cursor:pointer}
+
+  .course-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+  .course-row .swatch{width:12px;height:12px;border-radius:4px;flex:0 0 12px}
+  .course-row .field{flex:1}
+  .course-row select.field{flex:0 0 118px;font-size:12.5px;padding:9px 6px}
+  .icon-btn{appearance:none;border:0;background:var(--surface-2);color:var(--text-mute);
+    width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;flex:0 0 32px}
+  .icon-btn:hover{background:#e0492f;color:#fff}
+  .add-course{display:flex;gap:8px;margin-top:10px}
+  .add-course .field{flex:1}
+  .add-course select.field{flex:0 0 96px;padding:9px 6px;font-size:12.5px}
+
+  textarea.field{resize:vertical;min-height:88px;line-height:1.6;white-space:pre}
+  .data-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .data-btns .btn{justify-content:center}
+  .btn-danger{color:#e0492f;border-color:color-mix(in srgb,#e0492f 40%,var(--border))}
+  .btn-danger:hover{background:#e0492f;color:#fff;border-color:#e0492f}
+  .hint{font-size:12px;color:var(--text-mute);margin-top:8px;line-height:1.6}
+
+  @media (max-width:560px){
+    .brand h1{font-size:17px}
+    .seg button{padding:6px 11px;font-size:13px}
+    main{padding:14px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  @media print{
+    .topbar,.drawer,.scrim,.cell-add,.chip-x,.day-nav{display:none!important}
+    .app{background:#fff}
+    .table-wrap{overflow:visible;box-shadow:none}
+    .chip-select{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <h1>我的班表 <small id="brandSub"></small></h1>
+    </div>
+    <div class="seg" id="seasonTabs"></div>
+    <div class="topbar-actions">
+      <div class="seg" id="viewToggle"></div>
+      <button class="btn btn-ghost btn-icon" id="themeBtn" title="切換深色/淺色" aria-label="切換主題">🌓</button>
+      <button class="btn btn-primary" id="manageBtn">管理</button>
+    </div>
+  </header>
+  <main id="main"></main>
+  <footer class="legend" id="legend"></footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>管理課程與備註</h2>
+    <button class="btn btn-ghost btn-icon" id="closeDrawer" aria-label="關閉">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<input type="file" id="importFile" accept="application/json,.json" style="display:none">
+
+<script>
+(function(){
+  "use strict";
+  var STORAGE_KEY='my-schedule-v2';
+  var DAYS=[['Mon','一'],['Tue','二'],['Wed','三'],['Thu','四'],['Fri','五'],['Sat','六'],['Sun','日']];
+  var SLOTS=[['morning','早'],['afternoon','午'],['evening','晚']];
+  var WEEKEND={Sat:1,Sun:1};
+
+  function defaultData(){
+    return {
+      categoryOrder:['admin','tutoring','nobel','private','off'],
+      categories:{
+        admin:{label:'茲茲教務',color:'#2f7fce'},
+        tutoring:{label:'輔導課',color:'#2f9079'},
+        nobel:{label:'諾貝爾輔導',color:'#d98a2b'},
+        private:{label:'家教',color:'#a8386b'},
+        off:{label:'休假',color:'#6f7787'}
+      },
+      courses:[
+        {id:'c1',name:'茲茲教務',category:'admin'},
+        {id:'c2',name:'國小暑期實驗',category:'tutoring'},
+        {id:'c3',name:'國中暑期實驗',category:'tutoring'},
+        {id:'c4',name:'天母8理輔導',category:'tutoring'},
+        {id:'c16',name:'天母9理輔導',category:'tutoring'},
+        {id:'c6',name:'天母8理B班',category:'tutoring'},
+        {id:'c17',name:'士林8理輔導',category:'tutoring'},
+        {id:'c18',name:'士林9理輔導',category:'tutoring'},
+        {id:'c8',name:'諾貝爾八理輔導',category:'nobel'},
+        {id:'c9',name:'諾貝爾九理輔導',category:'nobel'},
+        {id:'c10',name:'桓安高三物理 (內湖)',category:'private'},
+        {id:'c11',name:'桓安高三化學 (內湖)',category:'private'},
+        {id:'c12',name:'禹安國八理化 (內湖) 7月',category:'private'},
+        {id:'c13',name:'禹安國八理化 (內湖)',category:'private'},
+        {id:'c14',name:'曜嘉國八理化 (士林)',category:'private'},
+        {id:'c15',name:'俊瑋家教？',category:'private'},
+        {id:'rest',name:'休',category:'off'}
+      ],
+      seq:19,
+      v:4,
+      schedules:{
+        summer:{title:'115 暑假', grid:{
+          morning:{Mon:['c2','c1'],Tue:['c3','c1'],Wed:['c4'],Thu:[],Fri:[],Sat:['c1'],Sun:['c10']},
+          afternoon:{Mon:['c1'],Tue:['c1'],Wed:['c1'],Thu:['c1'],Fri:['c8'],Sat:['c1'],Sun:['c15']},
+          evening:{Mon:['c12'],Tue:[],Wed:['c1'],Thu:['c1'],Fri:['c11'],Sat:['c14'],Sun:['c12']}
+        }},
+        fall:{title:'115 秋季開學 9月', grid:{
+          morning:{Mon:[],Tue:[],Wed:[],Thu:[],Fri:[],Sat:['c1'],Sun:['c10']},
+          afternoon:{Mon:['c1'],Tue:['c1'],Wed:['c1'],Thu:['c1'],Fri:['c1'],Sat:['c16'],Sun:['c15']},
+          evening:{Mon:['c9'],Tue:['c17'],Wed:['c11'],Thu:['c1'],Fri:['c6'],Sat:['c14'],Sun:['c13']}
+        }}
+      },
+      notes:{
+        todo:'俊瑋高一物理家教\n士林國九理化輔導\n天母國八理化輔導',
+        memo:'禹安暑期家教 7/19 20 26 27 晚上18:30\n桓安家教 晚上19-21 早上10-12\n曜嘉家教 晚上18:30-20:30'
+      }
+    };
+  }
+
+  var state={ data:null, ui:{ season:'summer', view:'week', day:'Mon', drawer:false } };
+  var memoryFallback=null;
+
+  function load(){
+    try{
+      var raw=localStorage.getItem(STORAGE_KEY);
+      if(raw) return migrate(JSON.parse(raw));
+    }catch(e){}
+    if(memoryFallback) return memoryFallback;
+    return defaultData();
+  }
+  function migrate(d){
+    if(!d||!d.schedules||!d.categories) return defaultData();
+    if(!d.categoryOrder) d.categoryOrder=['admin','tutoring','nobel','private'];
+    if(!d.categories.off) d.categories.off={label:'休假',color:'#6f7787'};
+    if(d.categoryOrder.indexOf('off')<0) d.categoryOrder.push('off');
+    if(!d.courses.some(function(c){return c.id==='rest';})) d.courses.push({id:'rest',name:'休',category:'off'});
+    if((d.v||0)<4){
+      // 拆分天母/士林通用輔導課為分年級版本；沿用原本課程(保留已排時段),只改名字
+      d.courses.forEach(function(c){
+        if(c.name==='天母理化輔導') c.name='天母9理輔導';
+        else if(c.name==='士林理化輔導') c.name='士林8理輔導';
+      });
+      var seq=d.seq||100;
+      ['天母8理輔導','天母9理輔導','士林8理輔導','士林9理輔導'].forEach(function(nm){
+        if(!d.courses.some(function(c){return c.name===nm;}))
+          d.courses.push({id:'c'+(seq++),name:nm,category:'tutoring'});
+      });
+      d.seq=seq; d.v=4;
+    }
+    return d;
+  }
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(state.data)); }
+    catch(e){ memoryFallback=state.data; }
+    memoryFallback=state.data;
+  }
+  function saveUI(){
+    try{ localStorage.setItem('my-schedule-ui',JSON.stringify(
+      {season:state.ui.season,view:state.ui.view,day:state.ui.day})); }catch(e){}
+  }
+  function loadUI(){
+    try{ var raw=localStorage.getItem('my-schedule-ui'); if(raw) return JSON.parse(raw); }catch(e){}
+    return null;
+  }
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function getCourse(id){ for(var i=0;i<state.data.courses.length;i++){ if(state.data.courses[i].id===id) return state.data.courses[i]; } return null; }
+  function catColor(key){ var c=state.data.categories[key]; return c?c.color:'#8a93a5'; }
+  function grid(){ return state.data.schedules[state.ui.season].grid; }
+
+  /* ---- cell / chip rendering ---- */
+  function courseOptions(selected){
+    var h='';
+    state.data.categoryOrder.forEach(function(k){
+      var cat=state.data.categories[k]; if(!cat) return;
+      var items=state.data.courses.filter(function(c){return c.category===k;});
+      if(!items.length) return;
+      h+='<optgroup label="'+esc(cat.label)+'">';
+      items.forEach(function(c){
+        h+='<option value="'+c.id+'"'+(c.id===selected?' selected':'')+'>'+esc(c.name)+'</option>';
+      });
+      h+='</optgroup>';
+    });
+    return h;
+  }
+  function chipHtml(sch,slot,day,idx,cid){
+    var course=getCourse(cid);
+    var color=course?catColor(course.category):'#8a93a5';
+    var key=sch+'|'+slot+'|'+day+'|'+idx;
+    return '<div class="chip" style="--chip:'+color+'">'+
+      '<select class="chip-select" data-edit="'+key+'" aria-label="選擇課程">'+courseOptions(cid)+'</select>'+
+      '<button class="chip-x" data-x="'+key+'" title="移除" aria-label="移除">✕</button>'+
+      '</div>';
+  }
+  function cellInner(sch,slot,day){
+    var arr=(grid()[slot]&&grid()[slot][day])||[];
+    var h='';
+    arr.forEach(function(cid,i){ h+=chipHtml(sch,slot,day,i,cid); });
+    h+='<button class="cell-add'+(arr.length?' filled':'')+'" data-add="'+sch+'|'+slot+'|'+day+'">＋ 新增</button>';
+    return h;
+  }
+
+  function renderWeek(){
+    var sch=state.ui.season;
+    var h='<div class="table-wrap"><table class="grid"><thead><tr><th class="corner"></th>';
+    DAYS.forEach(function(d){ h+='<th class="'+(WEEKEND[d[0]]?'weekend':'')+'">週'+d[1]+'</th>'; });
+    h+='</tr></thead><tbody>';
+    SLOTS.forEach(function(s){
+      h+='<tr><th class="slot-th">'+s[1]+'</th>';
+      DAYS.forEach(function(d){
+        h+='<td class="'+(WEEKEND[d[0]]?'we':'')+'"><div class="cell">'+cellInner(sch,s[0],d[0])+'</div></td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    return h;
+  }
+  function slotFull(z){ return z==='早'?'早 · 上午':z==='午'?'午 · 下午':'晚 · 晚上'; }
+  function renderDay(){
+    var sch=state.ui.season, day=state.ui.day;
+    var h='<div class="day-nav">';
+    DAYS.forEach(function(d){
+      h+='<button class="day-pill '+(WEEKEND[d[0]]?'we ':'')+(d[0]===day?'active':'')+'" data-day="'+d[0]+'">'+d[1]+'</button>';
+    });
+    h+='</div><div class="day-slots">';
+    SLOTS.forEach(function(s){
+      h+='<section class="slot-card"><h3><span class="slot-badge">'+s[1]+'</span>'+slotFull(s[1])+'</h3>'+
+         '<div class="slot-cell">'+cellInner(sch,s[0],day)+'</div></section>';
+    });
+    h+='</div>';
+    return h;
+  }
+
+  function renderSeg(el,items,active,attr){
+    el.innerHTML=items.map(function(it){
+      return '<button class="'+(it[0]===active?'active':'')+'" '+attr+'="'+it[0]+'">'+it[1]+'</button>';
+    }).join('');
+  }
+  function renderLegend(){
+    var el=document.getElementById('legend');
+    var h='<span class="legend-title">圖例</span>';
+    state.data.categoryOrder.forEach(function(k){
+      var c=state.data.categories[k]; if(!c) return;
+      h+='<span class="legend-item"><span class="legend-swatch" style="background:'+c.color+'"></span>'+esc(c.label)+'</span>';
+    });
+    el.innerHTML=h;
+  }
+  function renderMain(){
+    var sch=state.data.schedules[state.ui.season];
+    var head='<div class="view-head"><h2>'+esc(sch.title)+'</h2><span>'+
+      (state.ui.view==='week'?'一週總覽':'單日檢視')+'</span></div>';
+    document.getElementById('main').innerHTML=head+(state.ui.view==='week'?renderWeek():renderDay());
+    document.getElementById('brandSub').textContent='';
+  }
+  function render(){
+    renderSeg(document.getElementById('seasonTabs'),
+      [['summer','暑假'],['fall','秋季']], state.ui.season,'data-season');
+    renderSeg(document.getElementById('viewToggle'),
+      [['week','週'],['day','日']], state.ui.view,'data-view');
+    renderMain();
+    renderLegend();
+  }
+
+  /* ---- drawer ---- */
+  function renderDrawer(){
+    var d=state.data, h='';
+    // categories
+    h+='<div class="sect"><h3>工作類別與顏色</h3><p>調整名稱或色塊，班表會即時更新。</p>';
+    d.categoryOrder.forEach(function(k){
+      var c=d.categories[k];
+      h+='<div class="cat-row">'+
+        '<input type="color" data-catcolor="'+k+'" value="'+c.color+'">'+
+        '<input class="field" data-catlabel="'+k+'" value="'+esc(c.label)+'">'+
+        '</div>';
+    });
+    h+='</div>';
+    // courses
+    h+='<div class="sect"><h3>課程清單</h3><p>重新命名、換類別或刪除；也可在下方新增。</p>';
+    d.courses.forEach(function(c){
+      h+='<div class="course-row">'+
+        '<span class="swatch" style="background:'+catColor(c.category)+'"></span>'+
+        '<input class="field" data-cname="'+c.id+'" value="'+esc(c.name)+'">'+
+        '<select class="field" data-ccat="'+c.id+'">'+d.categoryOrder.map(function(k){
+          return '<option value="'+k+'"'+(k===c.category?' selected':'')+'>'+esc(d.categories[k].label)+'</option>';
+        }).join('')+'</select>'+
+        '<button class="icon-btn" data-cdel="'+c.id+'" title="刪除課程" aria-label="刪除">🗑</button>'+
+        '</div>';
+    });
+    h+='<div class="add-course">'+
+      '<input class="field" id="newCourseName" placeholder="新課程名稱…">'+
+      '<select class="field" id="newCourseCat">'+d.categoryOrder.map(function(k){
+        return '<option value="'+k+'">'+esc(d.categories[k].label)+'</option>';
+      }).join('')+'</select>'+
+      '<button class="btn btn-primary" id="addCourse">新增</button>'+
+      '</div></div>';
+    // notes
+    h+='<div class="sect"><h3>待確認</h3>'+
+      '<textarea class="field" data-note="todo" rows="4">'+esc(d.notes.todo)+'</textarea></div>';
+    h+='<div class="sect"><h3>備註</h3>'+
+      '<textarea class="field" data-note="memo" rows="4">'+esc(d.notes.memo)+'</textarea></div>';
+    // data
+    h+='<div class="sect"><h3>資料</h3>'+
+      '<div class="data-btns">'+
+        '<button class="btn" id="exportBtn">⬇ 匯出備份</button>'+
+        '<button class="btn" id="importBtn">⬆ 匯入備份</button>'+
+        '<button class="btn" id="printBtn">🖨 列印 / 存PDF</button>'+
+        '<button class="btn btn-danger" id="resetBtn">↺ 重設為預設</button>'+
+      '</div>'+
+      '<p class="hint">你的班表會自動存在這台裝置的瀏覽器裡。要在手機和電腦之間同步，請用「匯出備份」下載檔案，再到另一台裝置「匯入備份」。</p>'+
+      '</div>';
+    document.getElementById('drawerBody').innerHTML=h;
+  }
+  function openDrawer(open){
+    state.ui.drawer=open;
+    document.getElementById('drawer').classList.toggle('open',open);
+    document.getElementById('scrim').classList.toggle('open',open);
+    document.getElementById('drawer').setAttribute('aria-hidden',open?'false':'true');
+    if(open) renderDrawer();
+  }
+
+  /* ---- mutations ---- */
+  function parseKey(k){ var p=k.split('|'); return {sch:p[0],slot:p[1],day:p[2],idx:parseInt(p[3],10)}; }
+
+  document.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.matches('.chip-select')){
+      var k=parseKey(t.getAttribute('data-edit'));
+      state.data.schedules[k.sch].grid[k.slot][k.day][k.idx]=t.value;
+      save(); renderMain();
+    } else if(t.hasAttribute('data-catcolor')){
+      state.data.categories[t.getAttribute('data-catcolor')].color=t.value;
+      save(); renderMain(); renderLegend(); renderDrawer();
+    } else if(t.hasAttribute('data-ccat')){
+      var c=getCourse(t.getAttribute('data-ccat')); if(c){ c.category=t.value; }
+      save(); renderMain(); renderDrawer();
+    }
+  });
+
+  document.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.hasAttribute('data-catlabel')){
+      state.data.categories[t.getAttribute('data-catlabel')].label=t.value;
+      save(); renderLegend();
+    } else if(t.hasAttribute('data-cname')){
+      var c=getCourse(t.getAttribute('data-cname')); if(c){ c.name=t.value; }
+      save(); renderMain();
+    } else if(t.hasAttribute('data-note')){
+      state.data.notes[t.getAttribute('data-note')]=t.value;
+      save();
+    }
+  });
+
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('[data-season],[data-view],[data-day],[data-add],[data-x],[data-cdel],#manageBtn,#closeDrawer,#scrim,#addCourse,#exportBtn,#importBtn,#printBtn,#resetBtn,#themeBtn');
+    if(!t) return;
+
+    if(t.hasAttribute('data-season')){ state.ui.season=t.getAttribute('data-season'); saveUI(); render(); }
+    else if(t.hasAttribute('data-view')){ state.ui.view=t.getAttribute('data-view'); saveUI(); render(); }
+    else if(t.hasAttribute('data-day')){ state.ui.day=t.getAttribute('data-day'); saveUI(); renderMain(); }
+    else if(t.hasAttribute('data-add')){
+      var a=t.getAttribute('data-add').split('|');
+      var first=state.data.courses[0];
+      if(!first){ alert('請先在「管理」中新增課程'); return; }
+      state.data.schedules[a[0]].grid[a[1]][a[2]].push(first.id);
+      save(); renderMain();
+    }
+    else if(t.hasAttribute('data-x')){
+      var k=parseKey(t.getAttribute('data-x'));
+      state.data.schedules[k.sch].grid[k.slot][k.day].splice(k.idx,1);
+      save(); renderMain();
+    }
+    else if(t.id==='manageBtn'){ openDrawer(true); }
+    else if(t.id==='closeDrawer'||t.id==='scrim'){ openDrawer(false); }
+    else if(t.hasAttribute('data-cdel')){
+      var id=t.getAttribute('data-cdel'); var cc=getCourse(id);
+      if(cc && confirm('確定刪除「'+cc.name+'」？班表中已排的這門課會一併移除。')){
+        state.data.courses=state.data.courses.filter(function(x){return x.id!==id;});
+        ['summer','fall'].forEach(function(s){
+          var g=state.data.schedules[s].grid;
+          SLOTS.forEach(function(sl){ DAYS.forEach(function(dd){
+            g[sl[0]][dd[0]]=g[sl[0]][dd[0]].filter(function(x){return x!==id;});
+          });});
+        });
+        save(); renderMain(); renderDrawer();
+      }
+    }
+    else if(t.id==='addCourse'){
+      var nm=document.getElementById('newCourseName').value.trim();
+      var cat=document.getElementById('newCourseCat').value;
+      if(!nm){ document.getElementById('newCourseName').focus(); return; }
+      var id='c'+(state.data.seq++);
+      state.data.courses.push({id:id,name:nm,category:cat});
+      save(); renderMain(); renderDrawer();
+      var box=document.getElementById('drawerBody'); if(box) box.scrollTop=box.scrollHeight*0.5;
+    }
+    else if(t.id==='exportBtn'){ exportData(); }
+    else if(t.id==='importBtn'){ document.getElementById('importFile').click(); }
+    else if(t.id==='printBtn'){ window.print(); }
+    else if(t.id==='resetBtn'){
+      if(confirm('重設為一開始的預設班表？你目前的調整會被清除（建議先匯出備份）。')){
+        state.data=defaultData(); save(); render(); renderDrawer();
+      }
+    }
+    else if(t.id==='themeBtn'){ toggleTheme(); }
+  });
+
+  function exportData(){
+    var json=JSON.stringify(state.data,null,2);
+    var a=document.createElement('a');
+    a.href='data:application/json;charset=utf-8,'+encodeURIComponent(json);
+    a.download='我的班表-備份.json';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  document.getElementById('importFile').addEventListener('change',function(e){
+    var f=e.target.files&&e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var d=migrate(JSON.parse(r.result));
+        state.data=d; save(); render(); if(state.ui.drawer) renderDrawer();
+        alert('匯入完成！');
+      }catch(err){ alert('這個檔案讀不進來，請確認是本工具匯出的 .json 備份。'); }
+    };
+    r.readAsText(f); e.target.value='';
+  });
+
+  /* ---- theme ---- */
+  function toggleTheme(){
+    var root=document.documentElement;
+    var cur=root.getAttribute('data-theme');
+    var next= cur==='dark'?'light':(cur==='light'?'dark':
+      (window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'light':'dark'));
+    root.setAttribute('data-theme',next);
+    try{ localStorage.setItem('my-schedule-theme',next); }catch(e){}
+  }
+  (function initTheme(){
+    try{ var s=localStorage.getItem('my-schedule-theme'); if(s) document.documentElement.setAttribute('data-theme',s); }catch(e){}
+  })();
+
+  /* ---- init ---- */
+  state.data=load();
+  save();
+  var savedUI=loadUI();
+  if(savedUI){
+    if(savedUI.season) state.ui.season=savedUI.season;
+    if(savedUI.view) state.ui.view=savedUI.view;
+    if(savedUI.day) state.ui.day=savedUI.day;
+  } else if(window.innerWidth<640){
+    state.ui.view='day';
+  }
+  render();
+})();
+</script>
+</body></html>
