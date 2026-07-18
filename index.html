@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>我的班表</title></head><body><title>我的班表</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>我的班表</title></head><body><title>我的班表</title>
 <style>
   :root{
     --bg:#f4f6f9; --surface:#ffffff; --surface-2:#eef1f6; --surface-3:#e6eaf1;
@@ -153,6 +153,24 @@
   .slot-cell .chip-select{font-size:15px;padding:11px 30px 11px 13px}
   .slot-cell .chip-x{width:34px;flex-basis:34px}
   .slot-cell .cell-add{padding:11px;font-size:14px}
+
+  /* ---------- mobile week (day rows × slot cols, no horizontal scroll) ---------- */
+  .mweek{display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:5px;align-items:stretch;
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:8px 8px 10px}
+  .mweek-h{font-size:12px;font-weight:700;color:var(--text-dim);text-align:center;padding:2px 0 4px}
+  .mweek-daylabel{font-size:14px;font-weight:800;color:var(--text-dim);min-width:0;
+    display:flex;align-items:center;justify-content:center}
+  .mweek-daylabel.we{color:#b06a4a}
+  .mweek-cell{min-height:34px;min-width:0;border-radius:8px;padding:2px}
+  .mweek-cell.we{background:var(--weekend)}
+  .mcell{gap:4px;min-width:0}
+  .mcell .chip{border-radius:7px}
+  .mcell .chip-select{font-size:11.5px;font-weight:600;padding:6px 15px 6px 7px;line-height:1.15;
+    background-position:right 4px center;background-size:8px 5px;
+    text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+  .mcell .chip-x{width:16px;flex:0 0 16px;font-size:9px}
+  .mcell .cell-add{padding:5px 2px;font-size:11px;border-radius:7px}
 
   /* ---------- legend ---------- */
   .legend{max-width:1180px;margin:6px auto 40px;padding:0 clamp(14px,3.5vw,26px);
@@ -389,7 +407,9 @@
     return h;
   }
 
-  function renderWeek(){
+  function isNarrow(){ try{ return window.matchMedia('(max-width:700px)').matches; }catch(e){ return window.innerWidth<700; } }
+  function renderWeek(){ return isNarrow()?renderWeekMobile():renderWeekTable(); }
+  function renderWeekTable(){
     var sch=state.ui.season;
     var h='<div class="table-wrap"><table class="grid"><thead><tr><th class="corner"></th>';
     DAYS.forEach(function(d){ h+='<th class="'+(WEEKEND[d[0]]?'weekend':'')+'">週'+d[1]+'</th>'; });
@@ -402,6 +422,20 @@
       h+='</tr>';
     });
     h+='</tbody></table></div>';
+    return h;
+  }
+  function renderWeekMobile(){
+    var sch=state.ui.season;
+    var h='<div class="mweek"><div class="mweek-h mweek-corner"></div>';
+    SLOTS.forEach(function(s){ h+='<div class="mweek-h">'+s[1]+'</div>'; });
+    DAYS.forEach(function(d){
+      var we=WEEKEND[d[0]]?' we':'';
+      h+='<div class="mweek-daylabel'+we+'">'+d[1]+'</div>';
+      SLOTS.forEach(function(s){
+        h+='<div class="mweek-cell'+we+'"><div class="cell mcell">'+cellInner(sch,s[0],d[0])+'</div></div>';
+      });
+    });
+    h+='</div>';
     return h;
   }
   function slotFull(z){ return z==='早'?'早 · 上午':z==='午'?'午 · 下午':'晚 · 晚上'; }
@@ -635,8 +669,15 @@
     if(savedUI.view) state.ui.view=savedUI.view;
     if(savedUI.day) state.ui.day=savedUI.day;
   } else if(window.innerWidth<640){
-    state.ui.view='day';
+    state.ui.view='week';
   }
+  // re-render the week view when crossing the mobile/desktop breakpoint (rotate, resize)
+  try{
+    var _mq=window.matchMedia('(max-width:700px)');
+    var _onmq=function(){ if(state.ui.view==='week') renderMain(); };
+    if(_mq.addEventListener) _mq.addEventListener('change',_onmq);
+    else if(_mq.addListener) _mq.addListener(_onmq);
+  }catch(e){}
   render();
 })();
 </script>
