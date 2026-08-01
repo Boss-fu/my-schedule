@@ -266,7 +266,8 @@
   .manage-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.manage-panel-head p{margin:0}
   .manage-panel-body .sect{padding:16px 0;border-top:1px solid var(--border)}.manage-panel-body .sect:first-child{border-top:0;padding-top:0}
   body:not(.tools-only) .schedule-tools{display:none}
-  body.tools-only #main,body.tools-only .legend{display:none}
+  /* 「新增／管理行程」由教師後台嵌入時，也保留完整個人課表；
+     管理面板直接接在課表下方，不必另開抽屜或跳到另一頁。 */
   body.tools-only .schedule-tools{margin-top:18px}
 
   /* ---------- 新增行程 modal ---------- */
@@ -927,7 +928,8 @@
   })();
 
   /* ---- init ---- */
-  if(new URLSearchParams(window.location.search).get('tools')==='1') document.body.classList.add('tools-only');
+  var toolsOnly=new URLSearchParams(window.location.search).get('tools')==='1';
+  if(toolsOnly) document.body.classList.add('tools-only');
   state.data=load();
   save();
   var savedUI=loadUI();
@@ -947,6 +949,14 @@
   }catch(e){}
   render();
   renderManagePanel();
+  if(toolsOnly){
+    // 從左側「新增／管理行程」進來時，直接開啟完整管理面板。
+    document.querySelectorAll('[data-schedule-tool]').forEach(function(x){
+      var active=x.getAttribute('data-schedule-tool')==='manage';
+      x.classList.toggle('active',active);x.setAttribute('aria-selected',active?'true':'false');
+    });
+    document.querySelectorAll('[data-schedule-panel]').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-schedule-panel')==='manage');});
+  }
 })();
 </script>
 <script src="supabase-config.js"></script><script type="module" src="auth.js"></script>
