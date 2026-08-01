@@ -16,7 +16,7 @@
   async function addParentFileCenter(){
     const tabs=document.querySelector('.tabs'),student=document.getElementById('student');
     if(!tabs||!student||document.getElementById('fileCenter'))return false;
-    const section=document.createElement('section');section.id='fileCenter';section.className='view';section.innerHTML='<article class="card"><h2>檔案中心</h2><p class="muted">老師傳送的講義、練習與您上傳的考卷都會集中顯示在這裡。</p><div id="parentFileList"><p class="muted">載入檔案中…</p></div></article>';document.querySelector('.wrap').append(section);
+    const section=document.createElement('section');section.id='fileCenter';section.className='view';section.innerHTML='<article class="card"><h2>檔案中心</h2><p class="muted">老師傳送的講義、練習，以及您要回傳的段考卷或檔案，都集中在這裡。單一檔案上限 10MB。</p><form id="examUploadForm" class="feedback-form"><label>上傳給老師的檔案<input id="examFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.ppt,.pptx,.xls,.xlsx" required></label><button type="submit">上傳檔案</button><span id="examUploadNotice" class="muted"></span></form><div id="parentFileList" style="margin-top:18px"><p class="muted">載入檔案中…</p></div></article>';document.querySelector('.wrap').append(section);
     const button=document.createElement('button');button.type='button';button.textContent='檔案中心';button.dataset.view='fileCenter';tabs.append(button);
     button.onclick=()=>{document.querySelectorAll('[data-view],.view').forEach(node=>node.classList.remove('active'));button.classList.add('active');section.classList.add('active');renderParentFiles();};
     async function renderParentFiles(){
@@ -28,7 +28,7 @@
       const rows=await Promise.all(files.map(async file=>{const {data}=await parentFilesDb.storage.from('exam-papers').createSignedUrl(file.storage_path,3600);const label=file.uploader_id===session?.user?.id?'您上傳的檔案':'老師傳送的檔案';return '<tr><td><b>'+label+'</b><br>'+parentFilesEsc(file.file_name)+'</td><td>'+new Date(file.created_at).toLocaleString('zh-TW')+'</td><td>'+(data?.signedUrl?'<a class="btn" href="'+parentFilesEsc(data.signedUrl)+'" target="_blank" rel="noopener">開啟閱覽</a>':'<span class="muted">暫時無法開啟</span>')+'</td></tr>';}));
       list.innerHTML='<table><thead><tr><th>檔案</th><th>時間</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
     }
-    student.addEventListener('change',renderParentFiles);return true;
+    student.addEventListener('change',renderParentFiles);document.addEventListener('bossfu-file-uploaded',renderParentFiles);setTimeout(()=>{document.getElementById('upload')?.remove();document.querySelector('[data-view="upload"]')?.remove();},1400);return true;
   }
   const parentFileTimer=setInterval(async()=>{if(await addParentFileCenter())clearInterval(parentFileTimer);},250);
 </script>
@@ -149,19 +149,19 @@
     const file=document.getElementById('examFile')?.files?.[0],studentId=document.getElementById('student')?.value,notice=document.getElementById('examUploadNotice');
     if(!file||!studentId||!notice)return;
     if(file.size>10*1024*1024){notice.textContent='檔案不可超過 10MB。';return;}
-    if(!/^(application\/pdf|image\/jpeg|image\/png)$/.test(file.type)){notice.textContent='請上傳 PDF、JPG 或 PNG 檔案。';return;}
+    const ext=(file.name.match(/\.([a-z0-9]+)$/i)?.[1]||'').toLowerCase(),allowed=['pdf','jpg','jpeg','png','doc','docx','ppt','pptx','xls','xlsx'];
+    if(!allowed.includes(ext)){notice.textContent='請上傳 PDF、圖片或常用 Office 文件。';return;}
     notice.textContent='上傳中…';
     let {data:{session}}=await safeUploadDb.auth.getSession();
     const parentSession=window.parent!==window?window.parent.BOSSFU_AUTH_SESSION:null;
     if(!session&&parentSession?.access_token){await safeUploadDb.auth.setSession(parentSession);({data:{session}}=await safeUploadDb.auth.getSession());}
     if(!session?.user){notice.textContent='登入已逾期，請重新登入後再上傳。';return;}
-    const ext=file.type==='application/pdf'?'.pdf':file.type==='image/png'?'.png':'.jpg';
-    const path=studentId+'/'+Date.now()+'_exam_paper'+ext;
+    const path=studentId+'/'+Date.now()+'_parent_upload.'+ext;
     const {error:uploadError}=await safeUploadDb.storage.from('exam-papers').upload(path,file,{contentType:file.type,upsert:false});
     if(uploadError){notice.textContent='上傳失敗：'+uploadError.message;return;}
     const {error:recordError}=await safeUploadDb.from('student_files').insert({student_id:studentId,uploader_id:session.user.id,file_name:file.name,storage_path:path});
     if(recordError){await safeUploadDb.storage.from('exam-papers').remove([path]);notice.textContent='資料儲存失敗：'+recordError.message;return;}
-    notice.textContent='已上傳，老師可在學生課務中查看。';form.reset();
+    notice.textContent='已上傳，老師可在檔案中心查看。';form.reset();document.dispatchEvent(new Event('bossfu-file-uploaded'));
   }
   document.addEventListener('submit',event=>{const form=event.target;if(form?.id!=='examUploadForm')return;event.preventDefault();event.stopImmediatePropagation();uploadExamPaper(form);},true);
 </script>
