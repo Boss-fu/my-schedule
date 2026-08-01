@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>我的班表</title></head><body><title>我的班表</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>福大自然家教管理系統</title></head><body><title>福大自然家教管理系統</title>
 <style>
   :root{
     --bg:#f4f6f9; --surface:#ffffff; --surface-2:#eef1f6; --surface-3:#e6eaf1;
@@ -291,7 +291,7 @@
   <header class="topbar">
     <div class="brand">
       <span class="brand-dot"></span>
-      <h1>我的班表 <small id="brandSub"></small></h1>
+      <h1>福大自然家教管理系統 <small id="brandSub"></small></h1>
     </div>
     <div class="seg" id="seasonTabs"></div>
     <div class="topbar-actions">
@@ -848,7 +848,7 @@
     var json=JSON.stringify(state.data,null,2);
     var a=document.createElement('a');
     a.href='data:application/json;charset=utf-8,'+encodeURIComponent(json);
-    a.download='我的班表-備份.json';
+    a.download='福大自然家教管理系統-備份.json';
     document.body.appendChild(a); a.click(); a.remove();
   }
   document.getElementById('importFile').addEventListener('change',function(e){

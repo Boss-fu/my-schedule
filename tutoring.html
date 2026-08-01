@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>家教帳務與教學報告</title>
+  <title>福大自然家教管理系統｜家教帳務</title>
   <style>
     :root{--bg:#f4f6f9;--surface:#fff;--surface-2:#eef1f6;--border:#dce1ea;--border-strong:#c7cdd9;--text:#1c222c;--text-dim:#586074;--text-mute:#8a93a5;--accent:#2f7fce;--private:#a8386b;--ok:#2f9079;--danger:#e0492f;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 20px rgba(20,30,50,.07);--radius:14px}
     :root[data-theme="dark"]{--bg:#0f1218;--surface:#171b23;--surface-2:#1e2430;--border:#2a323f;--border-strong:#3a4454;--text:#e7ebf2;--text-dim:#a3adc0;--text-mute:#6d7789;--accent:#5aa0ec;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35)}
@@ -12,7 +12,7 @@
   <style>@media print{.intro{display:none!important}body{font-size:13px}main{margin:0!important}}</style>
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="index.html"><span class="brand-dot"></span><h1>我的班表 <small>／家教帳務</small></h1></a><div class="topbar-actions"><a class="btn back" href="index.html">← 班表</a><button class="btn btn-icon" id="themeBtn" title="切換深色／淺色">🌓</button><button class="btn" id="exportBtn">⬇ 備份</button><label class="btn">⬆ 匯入<input id="importFile" type="file" accept=".json,application/json" hidden></label></div></header>
+  <header class="topbar"><a class="brand" href="index.html"><span class="brand-dot"></span><h1>福大自然家教管理系統 <small>／BOSSFU TUTOR SYSTEM</small></h1></a><div class="topbar-actions"><a class="btn back" href="index.html">← 個人行程</a><button class="btn btn-icon" id="themeBtn" title="切換深色／淺色">🌓</button><button class="btn" id="exportBtn">⬇ 備份</button><label class="btn">⬆ 匯入<input id="importFile" type="file" accept=".json,application/json" hidden></label></div></header>
   <main>
     <p class="intro">每完成一堂家教就登錄一次；系統會依月份與學生統計實到時數、學費，並產出可列印的學費單和教學狀況報告。資料只保存在此瀏覽器。</p>
     <section class="card no-print"><h2>當月收入預覽</h2><p class="hint">選月份即可查看全部學生的實到課堂收入，也可指定單一學生。</p><div class="filter"><label class="field">月份<input id="overviewMonth" type="month"></label><label class="field">學生<select id="overviewStudent"></select></label></div><div id="overviewOutput"></div></section>
