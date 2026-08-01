@@ -165,8 +165,10 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
     if (error) { alert('刪除失敗，請稍後再試。'); button.disabled = false; button.textContent = '刪除'; return; }
     location.reload();
   }, true);
-  new MutationObserver(addParentDeleteButtons).observe(parentAdminRoot, { childList: true, subtree: true });
-  addParentDeleteButtons();
+  if (parentAdminRoot && typeof parentAdminRoot.nodeType === 'number') {
+    new MutationObserver(addParentDeleteButtons).observe(parentAdminRoot, { childList: true, subtree: true });
+    addParentDeleteButtons();
+  }
 </script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
