@@ -266,8 +266,9 @@
   .manage-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.manage-panel-head p{margin:0}
   .manage-panel-body .sect{padding:16px 0;border-top:1px solid var(--border)}.manage-panel-body .sect:first-child{border-top:0;padding-top:0}
   body:not(.tools-only) .schedule-tools{display:none}
-  /* 「新增／管理行程」由教師後台嵌入時，也保留完整個人課表；
-     管理面板直接接在課表下方，不必另開抽屜或跳到另一頁。 */
+  /* 「新增／管理行程」由教師後台嵌入時，只顯示管理頁；
+     個人課表則保留在獨立的左側分頁。 */
+  body.tools-only #main,body.tools-only .legend{display:none}
   body.tools-only .schedule-tools{margin-top:18px}
 
   /* ---------- 新增行程 modal ---------- */
