@@ -1,6 +1,6 @@
 {
-  "name": "福大自然家教｜教師端",
-  "short_name": "福大教師端",
+  "name": "福大自然｜教師端",
+  "short_name": "福大自然",
   "start_url": "./teacher.html",
   "display": "standalone",
   "background_color": "#f4f7fb",
