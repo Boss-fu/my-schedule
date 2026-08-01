@@ -139,7 +139,7 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
     if(!addLesson||!content)return;
     function updateTopAction(){
       const active=content.querySelector('.view.active')?.id;
-      addLesson.hidden=['service','parentPreview','schedule','scheduleTools'].includes(active);
+      addLesson.hidden=true;
     }
     new MutationObserver(updateTopAction).observe(content,{subtree:true,attributes:true,attributeFilter:['class']});
     updateTopAction();
