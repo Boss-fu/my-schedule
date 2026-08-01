@@ -9,7 +9,7 @@
     new MutationObserver(recolor).observe(document.documentElement,{childList:true,subtree:true});setInterval(recolor,300);
   })();
 </script>
-<script type="module" src="parent-invoice-payment.js?v=20260802-payment-details"></script>
+<script type="module" src="parent-invoice-payment.js?v=20260802-invoice-sections"></script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
   const profileDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);

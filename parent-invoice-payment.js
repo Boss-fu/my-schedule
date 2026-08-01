@@ -11,11 +11,11 @@ async function applyPaymentInfo() {
   const { data } = await db.from('site_settings').select('value').eq('key', 'finance_profile').maybeSingle();
   const saved = data?.value || {};
   const profile = { teacher: saved.teacher || defaultProfile.teacher, contact: saved.contact || defaultProfile.contact, payment: saved.payment || defaultProfile.payment };
-  const lines = [profile.teacher, profile.contact, profile.payment].filter(Boolean);
   const paint = () => {
     const node = document.querySelector('#invoicePreview .invoice > p.muted');
     if (!node) return;
-    node.textContent = '付款資訊\n' + (lines.length ? lines.join('\n') : '請洽教師。');
+    const teacherInfo = [profile.teacher, profile.contact].filter(Boolean).join('\n') || '福大自然（張家福）';
+    node.textContent = '老師資訊\n' + teacherInfo + '\n\n付款資訊\n' + (profile.payment || '請洽教師。');
     node.style.whiteSpace = 'pre-line';
   };
   paint();

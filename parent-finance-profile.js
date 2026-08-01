@@ -22,8 +22,8 @@ async function applyPayment() {
   const paint = () => {
     const node = preview.querySelector('.invoice > p.muted');
     if (!node) return;
-    const lines = [profile.teacher, profile.contact, profile.payment].filter(Boolean);
-    node.textContent = '付款資訊\n' + (lines.length ? lines.join('\n') : '請洽教師。');
+    const teacherInfo = [profile.teacher, profile.contact].filter(Boolean).join('\n') || '福大自然（張家福）';
+    node.textContent = '老師資訊\n' + teacherInfo + '\n\n付款資訊\n' + (profile.payment || '請洽教師。');
     node.style.whiteSpace = 'pre-line';
   };
   paint();

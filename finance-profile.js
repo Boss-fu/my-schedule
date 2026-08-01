@@ -31,8 +31,8 @@ function parentInvoicePayment() {
   if (!preview) return;
   const current = preview.querySelector('.invoice > p.muted');
   if (!current) return;
-  const lines = [profile.teacher, profile.contact, profile.payment].filter(Boolean);
-  current.textContent = '付款資訊\n' + (lines.length ? lines.join('\n') : '請洽教師。');
+  const teacherInfo = [profile.teacher, profile.contact].filter(Boolean).join('\n') || '福大自然（張家福）';
+  current.textContent = '老師資訊\n' + teacherInfo + '\n\n付款資訊\n' + (profile.payment || '請洽教師。');
   current.style.whiteSpace = 'pre-line';
 }
 
