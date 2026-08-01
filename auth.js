@@ -70,5 +70,12 @@ async function applySession(session) {
 }
 
 supabase.auth.onAuthStateChange((_event, session) => setTimeout(() => applySession(session), 0));
-const { data: { session } } = await supabase.auth.getSession();
-applySession(session);
+
+// 家長端是對外入口：每次直接開啟都需再次以家長帳密驗證，避免共用裝置沿用舊 session。
+if (isParentPage) {
+  await supabase.auth.signOut();
+  showGate();
+} else {
+  const { data: { session } } = await supabase.auth.getSession();
+  applySession(session);
+}
