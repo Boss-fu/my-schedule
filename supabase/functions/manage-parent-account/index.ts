@@ -23,6 +23,15 @@ Deno.serve(async (request) => {
   if (!user || teacher?.role !== 'teacher') return json({ error: '沒有教師權限。' }, 403)
 
   const payload = await request.json()
+  if (payload.action === 'delete') {
+    const parentId = String(payload.parent_id || '').trim()
+    if (!parentId) return json({ error: '缺少家長帳號識別。' }, 400)
+    const { data: parent } = await admin.from('profiles').select('id,role').eq('id', parentId).maybeSingle()
+    if (!parent || parent.role !== 'parent') return json({ error: '找不到要刪除的家長帳號。' }, 404)
+    const { error } = await admin.auth.admin.deleteUser(parentId)
+    if (error) return json({ error: error.message }, 400)
+    return json({ ok: true })
+  }
   const requestedParentId = String(payload.parent_id || '').trim()
   const phone = String(payload.phone || '').replace(/\D/g, '')
   const password = String(payload.password || '')
