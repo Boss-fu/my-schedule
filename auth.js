@@ -53,6 +53,11 @@ async function applySession(session) {
   if (!session) { if (!existing) showGate(); return; }
   const { data } = await supabase.from('profiles').select('role,display_name,is_active,must_change_password').eq('id', session.user.id).single();
   const role = data?.role;
+  // 教師不論由哪個入口登入，都統一回到教師客務後台。
+  if (role === 'teacher' && !isTeacherPortal && !isEmbeddedSchedule) {
+    location.replace('teacher.html');
+    return;
+  }
   if ((isTeacherPage && role !== 'teacher') || (isParentPage && role !== 'parent') || (role === 'parent' && !data?.is_active)) {
     await supabase.auth.signOut();
     if (existing) existing.remove();
@@ -61,11 +66,6 @@ async function applySession(session) {
   }
   if (role === 'parent' && data?.must_change_password) { showPasswordSetup(); return; }
   existing?.remove();
-  // 從個人課表登入的教師，直接導入既有資料的客務後台；後台內嵌的個人課表不跳轉。
-  if (role === 'teacher' && !isTeacherPortal && !isEmbeddedSchedule) {
-    location.replace('teacher.html');
-    return;
-  }
   // 教師端與家長端為獨立入口；登入後固定留在目前頁面，不顯示跨站捷徑。
 }
 
