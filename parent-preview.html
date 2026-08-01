@@ -9,6 +9,11 @@
     new MutationObserver(recolor).observe(document.documentElement,{childList:true,subtree:true});setInterval(recolor,300);
   })();
 </script>
+<script>
+  const mobileTabStyle=document.createElement('style');
+  mobileTabStyle.textContent='.tabs{margin-top:20px;padding-top:4px}.tabs button{padding-right:28px}.tabs button .tab-notice-badge{right:4px!important;top:4px!important}@media(max-width:650px){.head{margin-bottom:22px}.tabs{margin-top:0;padding-top:8px}}';
+  document.head.append(mobileTabStyle);
+</script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
   const parentNoticeDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
