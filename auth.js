@@ -47,6 +47,7 @@ function showGate(message = '') {
     const password = document.getElementById('authPassword').value;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) document.getElementById('authError').textContent = '帳號或密碼不正確。';
+    else if (isParentPage) location.reload();
   });
 }
 
@@ -69,6 +70,8 @@ function showPasswordSetup() {
     if (error) { errorNode.textContent = error.message || '密碼儲存失敗，請稍後再試。'; return; }
     const { error: completeError } = await supabase.rpc('complete_initial_parent_password');
     if (completeError) { errorNode.textContent = '密碼已更新，請重新登入後再試。'; return; }
+    // 改密碼完成後重新載入，讓家長資料 iframe 以已更新的 session 初始化。
+    if (isParentPage) { location.reload(); return; }
     document.getElementById('authGate')?.remove();
     document.body.classList.remove('auth-open');
   });
