@@ -6,6 +6,19 @@ const isParentPage = location.pathname.endsWith('/parent.html') || location.path
 const isTeacherPage = !isParentPage;
 const isTeacherPortal = location.pathname.endsWith('/teacher.html') || location.pathname.endsWith('/teacher');
 const isEmbeddedSchedule = location.pathname.endsWith('/index.html') && new URLSearchParams(location.search).has('embed');
+let latestSession = null;
+
+async function ensureSession() {
+  let { data: { session } } = await supabase.auth.getSession();
+  if (!session && latestSession?.access_token && latestSession?.refresh_token) {
+    const { data } = await supabase.auth.setSession({
+      access_token: latestSession.access_token,
+      refresh_token: latestSession.refresh_token,
+    });
+    session = data?.session || null;
+  }
+  return session;
+}
 
 const style = document.createElement('style');
 style.textContent = '#authGate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#f4f6f9;padding:20px;font-family:system-ui,sans-serif;pointer-events:auto}body.auth-open iframe{visibility:hidden!important;pointer-events:none!important}#authGate .auth-card{position:relative;z-index:1;width:min(390px,100%);padding:28px;background:#fff;border:1px solid #dce1ea;border-radius:16px;box-shadow:0 12px 40px rgba(20,35,60,.15)}#authGate h1{font-size:21px;margin:0 0 8px}#authGate p{color:#586074;margin:0 0 18px}#authGate label{display:block;font-size:13px;font-weight:700;margin:12px 0 4px;color:#586074}#authGate input{position:relative;z-index:2;width:100%;box-sizing:border-box;padding:10px;border:1px solid #c7cdd9;border-radius:9px;font:inherit;pointer-events:auto}#authGate button{margin-top:18px;width:100%;border:0;border-radius:9px;padding:11px;background:#2f7fce;color:#fff;font:inherit;font-weight:700;cursor:pointer}#authGate .notice{padding:10px 12px;background:#eef6ff;border:1px solid #c9e1f8;border-radius:9px;color:#245986;font-size:13px;line-height:1.55}.auth-inline{color:#2f7fce;font-weight:700}.auth-inline:hover{text-decoration:underline}.auth-secondary{margin-top:9px!important;background:#eef5fc!important;color:#205c95!important}.auth-help{font-size:12px!important;margin:8px 0 0!important}.auth-password-rules{font-size:12px!important;margin:6px 0 0!important}#authGate .error{min-height:20px;margin-top:10px;color:#c43b2f;font-size:13px}#authUser{position:fixed;right:16px;bottom:16px;z-index:30;display:flex;gap:7px;padding:7px;border:1px solid #dce1ea;background:#fff;border-radius:11px;box-shadow:0 5px 18px rgba(20,35,60,.12);font:13px system-ui}#authUser a{border:0;border-radius:7px;background:#eef5fc;color:#205c95;padding:7px 9px;font:inherit;font-weight:700;text-decoration:none;white-space:nowrap}#authUser a:hover{background:#dceeff}';
@@ -42,6 +55,8 @@ function showPasswordSetup() {
     if (password.length < 6) { errorNode.textContent = '密碼至少需要 6 碼。'; return; }
     if (password !== confirm) { errorNode.textContent = '兩次輸入的密碼不一致。'; return; }
     errorNode.textContent = '儲存中…';
+    const session = await ensureSession();
+    if (!session) { errorNode.textContent = '登入已逾時，請回到登入頁重新登入後再設定密碼。'; return; }
     const { error } = await supabase.auth.updateUser({ password });
     if (error) { errorNode.textContent = error.message || '密碼儲存失敗，請稍後再試。'; return; }
     const { error: completeError } = await supabase.rpc('complete_initial_parent_password');
@@ -54,6 +69,7 @@ function showPasswordSetup() {
 async function applySession(session) {
   const existing = document.getElementById('authGate');
   if (!session) { if (!existing) showGate(); return; }
+  latestSession = session;
   const { data } = await supabase.from('profiles').select('role,display_name,is_active,must_change_password').eq('id', session.user.id).single();
   const role = data?.role;
   // 教師不論由哪個入口登入，都統一回到教師客務後台。
@@ -86,7 +102,8 @@ supabase.auth.onAuthStateChange((event, session) => {
     location.reload();
     return;
   }
-  if (event === 'SIGNED_OUT') sessionStorage.removeItem('bossfu-teacher-session-ready');
+  if (session) latestSession = session;
+  if (event === 'SIGNED_OUT') { latestSession = null; sessionStorage.removeItem('bossfu-teacher-session-ready'); }
   setTimeout(() => applySession(session), 0);
 });
 
