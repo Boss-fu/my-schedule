@@ -23,7 +23,16 @@ function parentInvoicePayment() {
 async function setupTeacherFinanceProfile() {
   const teacher = document.getElementById('financeTeacher');
   if (!teacher) return;
+  const localProfile = {
+    teacher: teacher.value.trim(),
+    contact: document.getElementById('financeContact').value.trim(),
+    payment: document.getElementById('financePayment').value.trim(),
+  };
   await loadProfile();
+  if (!Object.values(profile).some(Boolean) && Object.values(localProfile).some(Boolean)) {
+    profile = localProfile;
+    await db.from('site_settings').upsert({ key: settingKey, value: profile, updated_at: new Date().toISOString() });
+  }
   teacher.value = profile.teacher || '';
   document.getElementById('financeContact').value = profile.contact || '';
   document.getElementById('financePayment').value = profile.payment || '';
