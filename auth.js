@@ -86,11 +86,7 @@ supabase.auth.onAuthStateChange((event, session) => {
   setTimeout(() => applySession(session), 0);
 });
 
-// 家長端是對外入口：每次直接開啟都需再次以家長帳密驗證，避免共用裝置沿用舊 session。
-if (isParentPage) {
-  await supabase.auth.signOut();
-  showGate();
-} else {
-  const { data: { session } } = await supabase.auth.getSession();
-  applySession(session);
-}
+// 家長端未登入時顯示登入頁；不可在載入期間強制登出，
+// 否則首次設定密碼的 session 會被清掉，造成「Auth session missing」。
+const { data: { session } } = await supabase.auth.getSession();
+applySession(session);
