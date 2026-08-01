@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const config = window.SUPABASE_CONFIG;
-const supabase = createClient(config.url, config.publishableKey);
+const supabase = (window.BOSSFU_DB ||= createClient(config.url, config.publishableKey));
 const isParentPage = location.pathname.endsWith('/parent.html') || location.pathname.endsWith('/parent');
 const isTeacherPage = !isParentPage;
 const isTeacherPortal = location.pathname.endsWith('/teacher.html') || location.pathname.endsWith('/teacher');
