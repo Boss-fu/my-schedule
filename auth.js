@@ -69,7 +69,17 @@ async function applySession(session) {
   // 教師端與家長端為獨立入口；登入後固定留在目前頁面，不顯示跨站捷徑。
 }
 
-supabase.auth.onAuthStateChange((_event, session) => setTimeout(() => applySession(session), 0));
+supabase.auth.onAuthStateChange((event, session) => {
+  // 新網域首次登入時，頁面主程式可能早於 session 完成而先載入成空白。
+  // 登入成功後只重載一次，確保所有課次、學生與財務查詢都以有效 session 初始化。
+  if (event === 'SIGNED_IN' && isTeacherPortal && !sessionStorage.getItem('bossfu-teacher-session-ready')) {
+    sessionStorage.setItem('bossfu-teacher-session-ready', '1');
+    location.reload();
+    return;
+  }
+  if (event === 'SIGNED_OUT') sessionStorage.removeItem('bossfu-teacher-session-ready');
+  setTimeout(() => applySession(session), 0);
+});
 
 // 家長端是對外入口：每次直接開啟都需再次以家長帳密驗證，避免共用裝置沿用舊 session。
 if (isParentPage) {
