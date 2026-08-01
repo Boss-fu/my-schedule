@@ -2,11 +2,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const db = createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.publishableKey);
 const settingKey = 'finance_profile';
+const localKey = 'bossfu-tutor-finance-profile';
 let profile = {};
 
 async function loadProfile() {
   const { data } = await db.from('site_settings').select('value').eq('key', settingKey).maybeSingle();
   profile = data?.value || {};
+  if (!Object.values(profile).some(Boolean)) {
+    try { profile = JSON.parse(localStorage.getItem(localKey) || '{}'); } catch (_) { profile = {}; }
+  }
+  try { localStorage.setItem(localKey, JSON.stringify(profile)); } catch (_) {}
+  window.BOSSFU_FINANCE_PROFILE = profile;
   return profile;
 }
 
@@ -16,7 +22,7 @@ function parentInvoicePayment() {
   const current = preview.querySelector('.invoice > p.muted');
   if (!current) return;
   const lines = [profile.teacher, profile.contact, profile.payment].filter(Boolean);
-  current.textContent = lines.length ? lines.join('\n') : '付款資訊請洽教師。';
+  current.textContent = '付款資訊\n' + (lines.length ? lines.join('\n') : '請洽教師。');
   current.style.whiteSpace = 'pre-line';
 }
 
@@ -47,6 +53,8 @@ async function setupTeacherFinanceProfile() {
     const { error } = await db.from('site_settings').upsert({ key: settingKey, value, updated_at: new Date().toISOString() });
     if (error) { notice.textContent = '儲存失敗，請稍後再試。'; return; }
     profile = value;
+    try { localStorage.setItem(localKey, JSON.stringify(value)); } catch (_) {}
+    window.BOSSFU_FINANCE_PROFILE = value;
     notice.textContent = '已儲存，家長學費單會同步顯示。';
   };
 }

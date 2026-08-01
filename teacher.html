@@ -105,6 +105,16 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
       setTimeout(function(){document.getElementById('financeProfileNotice').textContent=''},2500);
     };
   })();
+</script><script>
+  window.printInvoiceWithPayment=function(){
+    const month=$('financeMonth').value,id=$('financeStudent').value,list=filtered(month,id).filter(l=>l.status==='attended');
+    if(!list.length){alert('請先選擇有實到課次的學生與月份。');return;}
+    let profile={};try{profile=window.BOSSFU_FINANCE_PROFILE||JSON.parse(localStorage.getItem('bossfu-tutor-finance-profile')||'{}');}catch(_){profile={};}
+    const payment=[profile.teacher,profile.contact,profile.payment].filter(Boolean).join('\n')||'請洽教師。';
+    const name=id?students.find(s=>s.id===id)?.name:'全部學生',total=list.reduce((n,l)=>n+Number(l.hours)*Number(l.rate),0),hours=list.reduce((n,l)=>n+Number(l.hours),0),rows=list.map(l=>`<tr><td>${l.lesson_date}<br><small>${l.start_time?.slice(0,5)||''}–${l.end_time?.slice(0,5)||''}</small></td><td>${esc(l.topic||'家教課程')}</td><td>${l.hours}</td><td>${money(Number(l.hours)*Number(l.rate))}</td></tr>`).join(''),title=`${Number(month.slice(5))} 月學費單`,w=window.open('','_blank');
+    w.document.write(`<!doctype html><title>${title}_${esc(name)}</title><style>body{font:15px/1.6 system-ui,"PingFang TC";padding:30px;color:#1b2735}.report{max-width:820px;margin:auto}.head{border-bottom:2px solid #2d7dcc;padding-bottom:14px;margin-bottom:18px}.head h1{font-size:26px;margin:0}.head p{margin:3px 0;color:#657388}.metrics{display:flex;gap:10px;margin:15px 0}.metrics div{flex:1;background:#eef5fc;padding:10px;border-radius:8px;text-align:center}.metrics b{display:block;font-size:19px}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #d9e1eb;text-align:left}th{background:#f4f7fa}.amount{margin-top:18px;padding:14px;background:#e6f2ff;text-align:right;font-size:18px}.foot{margin-top:24px;padding:14px;background:#f7fafc;border-left:3px solid #2d7dcc;white-space:pre-line;color:#405168}.foot b{color:#1b2735}</style><article class="report"><header class="head"><h1>${title}</h1><p>福大自然家教管理系統｜BOSSFU TUTOR SYSTEM</p><p>學生：${esc(name||'全部學生')}　｜　結算月份：${month}</p></header><div class="metrics"><div><b>${list.length}</b>實到堂數</div><div><b>${hours}</b>累計時數</div><div><b>${money(total)}</b>本期費用</div></div><table><thead><tr><th>上課日期／時段</th><th>課程內容</th><th>時數</th><th>本次費用</th></tr></thead><tbody>${rows}</tbody></table><div class="amount">本期應繳金額　<b>${money(total)}</b></div><div class="foot"><b>付款資訊</b>\n${esc(payment)}</div></article>`);w.document.close();w.focus();w.print();
+  };
+  document.getElementById('printInvoice').onclick=window.printInvoiceWithPayment;
 </script></body></html>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';

@@ -17,7 +17,7 @@ async function applyPayment() {
     const node = preview.querySelector('.invoice > p.muted');
     if (!node) return;
     const lines = [profile.teacher, profile.contact, profile.payment].filter(Boolean);
-    node.textContent = lines.length ? lines.join('\n') : '付款資訊請洽教師。';
+    node.textContent = '付款資訊\n' + (lines.length ? lines.join('\n') : '請洽教師。');
     node.style.whiteSpace = 'pre-line';
   };
   paint();
