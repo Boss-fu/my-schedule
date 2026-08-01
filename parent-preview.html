@@ -47,3 +47,26 @@
   }
   setTimeout(addParentLogout,900);
 </script>
+<script>
+  (function(){
+    const style=document.createElement('style');
+    style.textContent='.exam-dropzone{margin:8px 0;border:2px dashed #9fc7ed;border-radius:12px;background:#f5faff;padding:24px 16px;text-align:center;color:#245986;font-weight:800;cursor:pointer;transition:.15s}.exam-dropzone.drag{border-color:#2d7dcc;background:#e9f5ff}.exam-dropzone small{display:block;margin-top:5px;color:#657388;font-weight:500}';
+    document.head.append(style);
+    function setupUpload(){
+      const input=document.getElementById('examFile');
+      if(!input||input.dataset.dragReady)return false;
+      input.dataset.dragReady='true';input.style.display='none';
+      const zone=document.createElement('div');zone.className='exam-dropzone';zone.tabIndex=0;zone.innerHTML='拖拉段考卷到這裡，或點擊選擇檔案<small>支援 PDF、JPG、PNG｜檔案上限 10MB</small>';
+      input.insertAdjacentElement('beforebegin',zone);
+      const describe=()=>{const file=input.files?.[0];if(file)zone.innerHTML='已選擇：'+file.name+'<small>按下「上傳段考卷」即可送出；可再點擊或拖拉檔案更換。</small>';};
+      zone.onclick=()=>input.click();zone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}};
+      input.addEventListener('change',describe);
+      ['dragenter','dragover'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add('drag')}));
+      ['dragleave','drop'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove('drag')}));
+      zone.addEventListener('drop',e=>{if(!e.dataTransfer.files?.length)return;input.files=e.dataTransfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));});
+      return true;
+    }
+    const timer=setInterval(()=>{if(setupUpload())clearInterval(timer)},250);
+    setTimeout(()=>{document.querySelector('[data-view="feedback"]')?.replaceChildren('親師溝通');const heading=document.querySelector('#feedback h2');if(heading)heading.textContent='親師溝通';const button=document.querySelector('#feedbackForm button');if(button)button.textContent='送出訊息';},900);
+  })();
+</script>
