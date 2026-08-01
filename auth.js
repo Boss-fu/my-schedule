@@ -6,7 +6,7 @@ const isParentPage = location.pathname.endsWith('/parent.html');
 const isTeacherPage = !isParentPage;
 
 const style = document.createElement('style');
-style.textContent = '#authGate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#f4f6f9;padding:20px;font-family:system-ui,sans-serif}#authGate .auth-card{width:min(390px,100%);padding:28px;background:#fff;border:1px solid #dce1ea;border-radius:16px;box-shadow:0 12px 40px rgba(20,35,60,.15)}#authGate h1{font-size:21px;margin:0 0 8px}#authGate p{color:#586074;margin:0 0 18px}#authGate label{display:block;font-size:13px;font-weight:700;margin:12px 0 4px;color:#586074}#authGate input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #c7cdd9;border-radius:9px;font:inherit}#authGate button{margin-top:18px;width:100%;border:0;border-radius:9px;padding:11px;background:#2f7fce;color:#fff;font:inherit;font-weight:700;cursor:pointer}#authGate .error{min-height:20px;margin-top:10px;color:#c43b2f;font-size:13px}#authUser{position:fixed;right:16px;bottom:16px;z-index:30;border:1px solid #dce1ea;background:#fff;border-radius:10px;padding:7px 10px;font:13px system-ui;color:#586074}#authUser button{margin-left:8px;border:0;background:transparent;color:#2f7fce;font:inherit;cursor:pointer}';
+style.textContent = '#authGate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#f4f6f9;padding:20px;font-family:system-ui,sans-serif}#authGate .auth-card{width:min(390px,100%);padding:28px;background:#fff;border:1px solid #dce1ea;border-radius:16px;box-shadow:0 12px 40px rgba(20,35,60,.15)}#authGate h1{font-size:21px;margin:0 0 8px}#authGate p{color:#586074;margin:0 0 18px}#authGate label{display:block;font-size:13px;font-weight:700;margin:12px 0 4px;color:#586074}#authGate input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #c7cdd9;border-radius:9px;font:inherit}#authGate button{margin-top:18px;width:100%;border:0;border-radius:9px;padding:11px;background:#2f7fce;color:#fff;font:inherit;font-weight:700;cursor:pointer}#authGate .error{min-height:20px;margin-top:10px;color:#c43b2f;font-size:13px}#authUser{position:fixed;right:16px;bottom:16px;z-index:30;border:1px solid #dce1ea;background:#fff;border-radius:10px;padding:7px 10px;font:13px system-ui;color:#586074}#authUser a,#authUser button{margin-left:8px;border:0;background:transparent;color:#2f7fce;font:inherit;cursor:pointer;text-decoration:none}';
 document.head.append(style);
 
 function accountEmail(value) {
@@ -37,7 +37,7 @@ async function applySession(session) {
     return;
   }
   existing?.remove();
-  if (!document.getElementById('authUser')) document.body.insertAdjacentHTML('beforeend', `<div id="authUser">${data.display_name || (role === 'teacher' ? '教師' : '家長')}<button type="button" id="authLogout">登出</button></div>`);
+  if (!document.getElementById('authUser')) document.body.insertAdjacentHTML('beforeend', `<div id="authUser">${data.display_name || (role === 'teacher' ? '教師' : '家長')}${role === 'teacher' ? '<a href="teacher.html">課務後台</a>' : ''}<button type="button" id="authLogout">登出</button></div>`);
   document.getElementById('authLogout').onclick = () => supabase.auth.signOut();
 }
 
