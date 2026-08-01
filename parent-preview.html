@@ -9,6 +9,23 @@
     new MutationObserver(recolor).observe(document.documentElement,{childList:true,subtree:true});setInterval(recolor,300);
   })();
 </script>
+<script>
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.data?.type!=='bossfu-open-parent-communication')return;
+    const openCommunication=()=>{
+      const student=document.getElementById('student');
+      if(!student||!student.options.length)return false;
+      if(event.data.studentId)student.value=event.data.studentId;
+      student.dispatchEvent(new Event('change'));
+      document.querySelector('[data-view="feedback"]')?.click();
+      document.getElementById('feedback')?.scrollIntoView({behavior:'smooth',block:'start'});
+      return true;
+    };
+    if(openCommunication())return;
+    const timer=setInterval(()=>{if(openCommunication())clearInterval(timer);},150);
+    setTimeout(()=>clearInterval(timer),5000);
+  });
+</script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
   const parentFilesDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
