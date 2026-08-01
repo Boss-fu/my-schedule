@@ -49,5 +49,5 @@ cross join public.profiles p
 where s.name = '周桓安' and p.role = 'teacher'
   and not exists (
     select 1 from public.messages m
-    where m.student_id = s.id and m.body like '@Jeff @Michelle 桓安、禹安媽咪%'
+    where m.student_id = s.id and m.body like '%@Jeff @Michelle 桓安、禹安媽咪%'
   );
