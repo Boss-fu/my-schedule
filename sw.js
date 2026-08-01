@@ -11,8 +11,8 @@ self.addEventListener('push', event => {
   const data = event.data?.json?.() || {};
   event.waitUntil(self.registration.showNotification(data.title || '福大自然家教通知', {
     body: data.body || '您有一則新的通知。',
-    icon: './icon-192.png',
-    badge: './icon-192.png',
+    icon: './icon-192-v3.png',
+    badge: './icon-192-v3.png',
     data: { url: data.url || './parent.html' }
   }));
 });
