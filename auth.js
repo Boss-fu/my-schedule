@@ -61,7 +61,7 @@ async function applySession(session) {
   existing?.remove();
   if (!document.getElementById('authUser')) {
     const links = role === 'teacher'
-      ? '<a href="teacher.html">老師課務後台</a><a href="parent-preview.html">家長端介面</a>'
+      ? '<a href="teacher.html">老師課務後台</a><a href="parent-preview.html">家長端預覽</a>'
       : '<a href="parent.html">家長端介面</a>';
     document.body.insertAdjacentHTML('beforeend', `<nav id="authUser" aria-label="系統捷徑">${links}</nav>`);
   }
