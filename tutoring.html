@@ -59,5 +59,6 @@
   <script>
   (function(){var ids=['overviewMonth','invoiceMonth','scheduleMonth','reportMonth'],now=new Date(),years={};for(var y=now.getFullYear()-2;y<=now.getFullYear()+2;y++)years[y]=true;try{(JSON.parse(localStorage.getItem('my-schedule-tutoring-v1'))||{lessons:[]}).lessons.forEach(function(x){if(x.date)years[x.date.slice(0,4)]=true})}catch(e){}function makeOptions(){var out=[];Object.keys(years).sort().reverse().forEach(function(y){for(var m=12;m>=1;m--){var value=y+'-'+String(m).padStart(2,'0');out.push('<option value="'+value+'">'+value+'</option>')}});return out.join('')}ids.forEach(function(id){var old=document.getElementById(id),value=old.value||now.toISOString().slice(0,7),change=old.onchange,select=document.createElement('select');select.id=id;select.innerHTML=makeOptions();select.value=value;old.replaceWith(select);select.onchange=change});})();
   </script>
+  <script src="supabase-config.js"></script><script type="module" src="auth.js"></script>
 </body>
 </html>
