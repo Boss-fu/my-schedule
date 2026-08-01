@@ -33,8 +33,9 @@ Deno.serve(async (request) => {
   const { data: existing } = await admin.from('profiles').select('id').eq('phone', phone).eq('role', 'parent').maybeSingle()
   let parentId = existing?.id
   if (!parentId) {
-    if (password.length < 6) return json({ error: '新帳號請設定至少 6 碼密碼。' }, 400)
-    const { data, error } = await admin.auth.admin.createUser({ email: `u${phone}@bossfu-tutor.com`, password, email_confirm: true, ban_duration: isActive ? 'none' : '876000h' })
+    const initialPassword = password || '00000000'
+    if (initialPassword.length < 6) return json({ error: '新帳號請設定至少 6 碼密碼。' }, 400)
+    const { data, error } = await admin.auth.admin.createUser({ email: `u${phone}@bossfu-tutor.com`, password: initialPassword, email_confirm: true, ban_duration: isActive ? 'none' : '876000h' })
     if (error || !data.user) return json({ error: error?.message || '建立帳號失敗。' }, 400)
     parentId = data.user.id
   } else {
@@ -43,7 +44,9 @@ Deno.serve(async (request) => {
     const { error } = await admin.auth.admin.updateUserById(parentId, update)
     if (error) return json({ error: error.message }, 400)
   }
-  const { error: profileError } = await admin.from('profiles').upsert({ id: parentId, role: 'parent', display_name: displayName, phone, is_active: isActive })
+  const profile = { id: parentId, role: 'parent', display_name: displayName, phone, is_active: isActive }
+  if (!existing) Object.assign(profile, { must_change_password: true })
+  const { error: profileError } = await admin.from('profiles').upsert(profile)
   if (profileError) return json({ error: profileError.message }, 400)
   await admin.from('parent_students').delete().eq('parent_id', parentId)
   const { error: linkError } = await admin.from('parent_students').insert(studentIds.map((student_id: string) => ({ parent_id: parentId, student_id })))
