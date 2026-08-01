@@ -58,5 +58,5 @@ async function setupParentInvoiceProfile() {
   if (preview) new MutationObserver(parentInvoicePayment).observe(preview, { childList: true, subtree: true });
 }
 
-if (location.pathname.endsWith('/teacher.html')) setupTeacherFinanceProfile();
+if (location.pathname.endsWith('/teacher.html') || location.pathname.endsWith('/teacher')) setupTeacherFinanceProfile();
 if (location.pathname.endsWith('/parent-preview.html')) setupParentInvoiceProfile();

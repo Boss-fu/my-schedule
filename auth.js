@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const config = window.SUPABASE_CONFIG;
 const supabase = createClient(config.url, config.publishableKey);
-const isParentPage = location.pathname.endsWith('/parent.html');
+const isParentPage = location.pathname.endsWith('/parent.html') || location.pathname.endsWith('/parent');
 const isTeacherPage = !isParentPage;
 const isPersonalSchedulePage = location.pathname.endsWith('/index.html') || location.pathname === '/' || location.pathname.endsWith('/my-schedule/');
 
@@ -63,8 +63,8 @@ async function applySession(session) {
   // 個人課表只保留課表本身，不顯示浮動的系統捷徑。
   if (!isPersonalSchedulePage && !document.getElementById('authUser')) {
     const links = role === 'teacher'
-      ? '<a href="teacher.html">老師課務後台</a><a href="parent-preview.html">家長端預覽</a>'
-      : '<a href="parent.html">家長端介面</a>';
+      ? '<a href="/teacher">老師課務後台</a><a href="parent-preview.html">家長端預覽</a>'
+      : '<a href="/parent">家長端介面</a>';
     document.body.insertAdjacentHTML('beforeend', `<nav id="authUser" aria-label="系統捷徑">${links}</nav>`);
   }
 }
