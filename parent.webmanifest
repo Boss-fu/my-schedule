@@ -1,0 +1,9 @@
+{
+  "name": "福大自然家教｜家長端",
+  "short_name": "福大家長端",
+  "start_url": "./parent.html",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#2d7dcc",
+  "lang": "zh-Hant"
+}
