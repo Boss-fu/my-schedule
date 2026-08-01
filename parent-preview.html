@@ -118,3 +118,27 @@
     setTimeout(()=>{document.querySelector('[data-view="feedback"]')?.replaceChildren('親師溝通');const heading=document.querySelector('#feedback h2');if(heading)heading.textContent='親師溝通';const button=document.querySelector('#feedbackForm button');if(button)button.textContent='送出訊息';},900);
   })();
 </script>
+<script type="module">
+  /* Loaded last so this captures submit before legacy inline handlers. */
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const safeUploadDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  async function uploadExamPaper(form){
+    const file=document.getElementById('examFile')?.files?.[0],studentId=document.getElementById('student')?.value,notice=document.getElementById('examUploadNotice');
+    if(!file||!studentId||!notice)return;
+    if(file.size>10*1024*1024){notice.textContent='檔案不可超過 10MB。';return;}
+    if(!/^(application\/pdf|image\/jpeg|image\/png)$/.test(file.type)){notice.textContent='請上傳 PDF、JPG 或 PNG 檔案。';return;}
+    notice.textContent='上傳中…';
+    let {data:{session}}=await safeUploadDb.auth.getSession();
+    const parentSession=window.parent!==window?window.parent.BOSSFU_AUTH_SESSION:null;
+    if(!session&&parentSession?.access_token){await safeUploadDb.auth.setSession(parentSession);({data:{session}}=await safeUploadDb.auth.getSession());}
+    if(!session?.user){notice.textContent='登入已逾期，請重新登入後再上傳。';return;}
+    const ext=file.type==='application/pdf'?'.pdf':file.type==='image/png'?'.png':'.jpg';
+    const path=studentId+'/'+Date.now()+'_exam_paper'+ext;
+    const {error:uploadError}=await safeUploadDb.storage.from('exam-papers').upload(path,file,{contentType:file.type,upsert:false});
+    if(uploadError){notice.textContent='上傳失敗：'+uploadError.message;return;}
+    const {error:recordError}=await safeUploadDb.from('student_files').insert({student_id:studentId,uploader_id:session.user.id,file_name:file.name,storage_path:path});
+    if(recordError){await safeUploadDb.storage.from('exam-papers').remove([path]);notice.textContent='資料儲存失敗：'+recordError.message;return;}
+    notice.textContent='已上傳，老師可在學生課務中查看。';form.reset();
+  }
+  document.addEventListener('submit',event=>{const form=event.target;if(form?.id!=='examUploadForm')return;event.preventDefault();event.stopImmediatePropagation();uploadExamPaper(form);},true);
+</script>
