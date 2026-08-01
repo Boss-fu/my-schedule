@@ -28,12 +28,12 @@ function showGate(message = '') {
 async function applySession(session) {
   const existing = document.getElementById('authGate');
   if (!session) { if (!existing) showGate(); return; }
-  const { data } = await supabase.from('profiles').select('role,display_name').eq('id', session.user.id).single();
+  const { data } = await supabase.from('profiles').select('role,display_name,is_active').eq('id', session.user.id).single();
   const role = data?.role;
-  if ((isTeacherPage && role !== 'teacher') || (isParentPage && role !== 'parent')) {
+  if ((isTeacherPage && role !== 'teacher') || (isParentPage && role !== 'parent') || (role === 'parent' && !data?.is_active)) {
     await supabase.auth.signOut();
     if (existing) existing.remove();
-    showGate(isParentPage ? '此帳號沒有家長端權限。' : '此帳號沒有教師端權限。');
+    showGate(isParentPage && role === 'parent' ? '此家長帳號尚未開通。' : isParentPage ? '此帳號沒有家長端權限。' : '此帳號沒有教師端權限。');
     return;
   }
   existing?.remove();
