@@ -10,12 +10,20 @@ let latestSession = null;
 
 async function ensureSession() {
   let { data: { session } } = await supabase.auth.getSession();
-  if (!session && latestSession?.access_token && latestSession?.refresh_token) {
+  const candidate = session || latestSession;
+  // 多個同網域頁面同時初始化 Supabase 時，先把目前 session 明確寫回此 client，
+  // 再刷新 token，避免 updateUser 誤判為沒有登入。
+  if (candidate?.access_token && candidate?.refresh_token) {
     const { data } = await supabase.auth.setSession({
-      access_token: latestSession.access_token,
-      refresh_token: latestSession.refresh_token,
+      access_token: candidate.access_token,
+      refresh_token: candidate.refresh_token,
     });
     session = data?.session || null;
+  }
+  if (session) {
+    const { data } = await supabase.auth.refreshSession();
+    session = data?.session || session;
+    latestSession = session;
   }
   return session;
 }
