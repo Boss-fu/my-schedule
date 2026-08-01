@@ -135,6 +135,18 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
 </script>
 <script>
   (function(){
+    const addLesson=document.getElementById('openLesson'),content=document.querySelector('.content');
+    if(!addLesson||!content)return;
+    function updateTopAction(){
+      const active=content.querySelector('.view.active')?.id;
+      addLesson.hidden=['service','parentPreview','schedule','scheduleTools'].includes(active);
+    }
+    new MutationObserver(updateTopAction).observe(content,{subtree:true,attributes:true,attributeFilter:['class']});
+    updateTopAction();
+  })();
+</script>
+<script>
+  (function(){
     var lessonForm=document.getElementById('lessonForm');
     if(lessonForm&&!document.getElementById('formStatus'))lessonForm.insertAdjacentHTML('afterbegin','<input type="hidden" id="formStatus" value="attended">');
   })();
