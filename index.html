@@ -498,7 +498,11 @@
     return h;
   }
 
-  function isNarrow(){ try{ return window.matchMedia('(max-width:700px)').matches; }catch(e){ return window.innerWidth<700; } }
+  /* 嵌入教師端時固定使用直向週表：所有七天與早午晚時段同頁呈現，不需要橫向捲動。 */
+  function isNarrow(){
+    if(new URLSearchParams(window.location.search).get('embed')==='teacher') return true;
+    try{ return window.matchMedia('(max-width:700px)').matches; }catch(e){ return window.innerWidth<700; }
+  }
   function renderWeek(){ return isNarrow()?renderWeekMobile():renderWeekTable(); }
   function renderWeekTable(){
     var sch=state.ui.season;
