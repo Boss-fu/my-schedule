@@ -7,6 +7,10 @@ async function applyPayment() {
   const doc = frame?.contentDocument;
   const preview = doc?.getElementById('invoicePreview');
   if (!preview) return;
+  const invoiceTitle = doc.querySelector('#invoice h2');
+  const invoiceHint = doc.querySelector('#invoice p.muted');
+  if (invoiceTitle) invoiceTitle.textContent = '學費單';
+  if (invoiceHint) invoiceHint.textContent = '選擇月份即可查看當月學費明細。';
   const { data } = await db.from('site_settings').select('value').eq('key', 'finance_profile').maybeSingle();
   const profile = data?.value || {};
   const paint = () => {
