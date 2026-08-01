@@ -28,7 +28,8 @@
       const rows=await Promise.all(files.map(async file=>{const {data}=await parentFilesDb.storage.from('exam-papers').createSignedUrl(file.storage_path,3600);const label=file.uploader_id===session?.user?.id?'您上傳的檔案':'老師傳送的檔案';return '<tr><td><b>'+label+'</b><br>'+parentFilesEsc(file.file_name)+'</td><td>'+new Date(file.created_at).toLocaleString('zh-TW')+'</td><td>'+(data?.signedUrl?'<a class="btn" href="'+parentFilesEsc(data.signedUrl)+'" target="_blank" rel="noopener">開啟閱覽</a>':'<span class="muted">暫時無法開啟</span>')+'</td></tr>';}));
       list.innerHTML='<table><thead><tr><th>檔案</th><th>時間</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
     }
-    student.addEventListener('change',renderParentFiles);document.addEventListener('bossfu-file-uploaded',renderParentFiles);setTimeout(()=>{document.getElementById('upload')?.remove();document.querySelector('[data-view="upload"]')?.remove();},1400);return true;
+    const removeLegacyUpload=()=>{document.getElementById('upload')?.remove();document.querySelector('[data-view="upload"]')?.remove();};
+    student.addEventListener('change',renderParentFiles);document.addEventListener('bossfu-file-uploaded',renderParentFiles);removeLegacyUpload();new MutationObserver(removeLegacyUpload).observe(document.body,{childList:true,subtree:true});return true;
   }
   const parentFileTimer=setInterval(async()=>{if(await addParentFileCenter())clearInterval(parentFileTimer);},250);
 </script>
