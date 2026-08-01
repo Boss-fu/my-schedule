@@ -148,6 +148,28 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
     if(expanded&&expanded.classList.contains('coursework-expanded'))expanded.classList.toggle('open');
   });
 </script>
+<script type="module">
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const uploadReviewDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  const courseworkPanel=document.getElementById('coursework');
+  if(courseworkPanel){
+    courseworkPanel.insertAdjacentHTML('beforeend','<div class="card" id="uploadedExamPapers"><div class="calendar-head"><div><h2>家長上傳段考卷</h2><p class="muted">請先在上方選擇學生，即可查看家長上傳的 PDF 或圖片。</p></div><button class="btn" type="button" id="refreshExamPapers">重新整理</button></div><div id="examPaperList"><p class="empty">請選擇學生。</p></div></div>');
+    const list=document.getElementById('examPaperList'),student=()=>document.getElementById('workStudent')?.value||'',esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    async function renderExamPapers(){
+      const studentId=student();
+      if(!studentId){list.innerHTML='<p class="empty">請選擇學生。</p>';return;}
+      list.innerHTML='<p class="muted">載入上傳檔案中…</p>';
+      const {data:files,error}=await uploadReviewDb.from('student_files').select('id,file_name,storage_path,created_at').eq('student_id',studentId).order('created_at',{ascending:false});
+      if(error){list.innerHTML='<p class="empty">無法讀取上傳檔案，請重新整理後再試。</p>';return;}
+      if(!files?.length){list.innerHTML='<p class="empty">這位學生尚未上傳段考卷。</p>';return;}
+      const rows=await Promise.all(files.map(async file=>{const {data}=await uploadReviewDb.storage.from('exam-papers').createSignedUrl(file.storage_path,3600);return {file,url:data?.signedUrl||''};}));
+      list.innerHTML='<table><thead><tr><th>檔案名稱</th><th>上傳時間</th><th></th></tr></thead><tbody>'+rows.map(({file,url})=>'<tr><td>'+esc(file.file_name)+'</td><td>'+new Date(file.created_at).toLocaleString('zh-TW')+'</td><td>'+(url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">開啟閱覽</a>':'<span class="muted">檔案暫時無法開啟</span>')+'</td></tr>').join('')+'</tbody></table>';
+    }
+    document.getElementById('refreshExamPapers').onclick=renderExamPapers;
+    document.getElementById('workStudent')?.addEventListener('change',renderExamPapers);
+    setTimeout(renderExamPapers,1000);
+  }
+</script>
 <script>
   (function(){
     var finance=document.getElementById('finance');
