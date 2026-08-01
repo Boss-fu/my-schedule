@@ -262,6 +262,9 @@
   .schedule-tools-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
   .schedule-tools-panel{display:none;padding:14px 16px;align-items:center;justify-content:space-between;gap:12px}
   .schedule-tools-panel.active{display:flex}.schedule-tools-panel p{margin:0;color:var(--text-dim);font-size:13px}
+  .schedule-tools-panel.manage-panel{display:none;align-items:stretch}.schedule-tools-panel.manage-panel.active{display:block}
+  .manage-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.manage-panel-head p{margin:0}
+  .manage-panel-body .sect{padding:16px 0;border-top:1px solid var(--border)}.manage-panel-body .sect:first-child{border-top:0;padding-top:0}
   body:not(.tools-only) .schedule-tools{display:none}
   body.tools-only #main,body.tools-only .legend{display:none}
   body.tools-only .schedule-tools{margin-top:18px}
@@ -307,7 +310,8 @@
       <h1>福大自然家教管理系統 <small id="brandSub"></small></h1>
     </div>
     <div class="seg" id="seasonTabs"></div>
-    <div class="topbar-actions">
+      <div class="topbar-actions">
+      <button class="btn btn-primary" id="addEventTop" type="button">＋ 新增行程</button>
       <div class="seg" id="viewToggle"></div>
       <button class="btn btn-ghost btn-icon" id="themeBtn" title="切換深色/淺色" aria-label="切換主題">🌓</button>
     </div>
@@ -320,7 +324,7 @@
         <button class="schedule-tools-tab" type="button" data-schedule-tool="manage" role="tab">管理課程</button>
       </div>
       <div class="schedule-tools-panel active" data-schedule-panel="add"><p>新增一筆行程到目前選取的班表與時段。</p><button class="btn btn-primary" id="addEventBtn" type="button">＋ 新增行程</button></div>
-      <div class="schedule-tools-panel" data-schedule-panel="manage"><p>在這裡設定課程名稱、分類顏色、待辦與班表備份。</p><button class="btn" id="manageBtn" type="button">開啟課表管理</button></div>
+      <div class="schedule-tools-panel manage-panel" data-schedule-panel="manage"><div class="manage-panel-head"><p>直接管理工作類別、課程、待辦與備份；所有異動會立即更新課表。</p><button class="btn btn-primary" id="addEventManage" type="button">＋ 新增行程</button></div><div class="manage-panel-body" id="managePanelBody"></div></div>
     </div>
   </section>
   <footer class="legend" id="legend"></footer>
@@ -626,7 +630,7 @@
   }
 
   /* ---- drawer ---- */
-  function renderDrawer(){
+  function renderDrawer(targetId){
     var d=state.data, h='';
     // categories
     h+='<div class="sect"><h3>工作類別與顏色</h3><p>調整名稱或色塊，班表會即時更新。</p>';
@@ -637,7 +641,7 @@
         '<input class="field" data-catlabel="'+k+'" value="'+esc(c.label)+'">'+
         '</div>';
     });
-    h+='</div>';
+    h+='<div class="add-course"><input class="field" id="newCategoryName" placeholder="新增工作類別…"><input class="field" id="newCategoryColor" type="color" value="#64748b"><button class="btn btn-primary" id="addCategory">新增類別</button></div></div>';
     // courses（依標籤顏色分組、組內依筆劃排序）
     h+='<div class="sect"><h3>課程清單</h3><p>依分類顏色分組、組內依筆劃排序。可重新命名、換類別或刪除。</p>';
     orderedCourses().forEach(function(c){
@@ -673,7 +677,12 @@
     h+='</ul><div class="todo-add">'+
       '<input class="field todo-input" data-todoinput="weekly" placeholder="新增本週待辦…" maxlength="120">'+
       '<button class="btn btn-primary" data-todoadd="weekly">加入</button></div>'+
-      '<p class="hint">每日待辦請在「日」檢視畫面下方各自新增。</p></div></div>';
+      '</div>';
+    var todayScope='day:'+state.ui.day, today=todoList(todayScope);
+    h+='<div class="todo-section drawer-todo"><div class="todo-mini-title">本日待辦（週'+dayZh(state.ui.day)+'）</div><ul class="todo-list">';
+    if(!today.length) h+='<li class="todo-empty">尚無項目</li>';
+    today.forEach(function(it){h+='<li class="todo-item"><label class="todo-check"><input type="checkbox" data-todotoggle="'+todayScope+'|'+it.id+'"'+(it.done?' checked':'')+'><span class="todo-text'+(it.done?' done':'')+'">'+esc(it.text)+'</span></label><button class="icon-btn todo-del" data-tododel="'+todayScope+'|'+it.id+'" aria-label="刪除">✕</button></li>';});
+    h+='</ul><div class="todo-add"><input class="field todo-input" data-todoinput="'+todayScope+'" placeholder="新增本日待辦…" maxlength="120"><button class="btn btn-primary" data-todoadd="'+todayScope+'">加入</button></div></div></div>';
     // notes
     h+='<div class="sect"><h3>待確認</h3>'+
       '<textarea class="field" data-note="todo" rows="4">'+esc(d.notes.todo)+'</textarea></div>';
@@ -689,15 +698,17 @@
       '</div>'+
       '<p class="hint">你的班表會自動存在這台裝置的瀏覽器裡。要在手機和電腦之間同步，請用「匯出備份」下載檔案，再到另一台裝置「匯入備份」。</p>'+
       '</div>';
-    document.getElementById('drawerBody').innerHTML=h;
+    var target=document.getElementById(targetId||'drawerBody'); if(target) target.innerHTML=h;
   }
   function openDrawer(open){
     state.ui.drawer=open;
     document.getElementById('drawer').classList.toggle('open',open);
     document.getElementById('scrim').classList.toggle('open',open);
     document.getElementById('drawer').setAttribute('aria-hidden',open?'false':'true');
-    if(open) renderDrawer();
+    if(open) renderDrawer('drawerBody');
   }
+
+  function renderManagePanel(){ renderDrawer('managePanelBody'); }
 
   /* ---- 新增行程 modal ---- */
   function renderEventModal(){
@@ -743,7 +754,7 @@
       state.data.courses.push({id:cid,name:nm,category:cat});
     } else { cid=courseVal; }
     state.data.schedules[state.ui.season].grid[slot][day].push(cid);
-    save(); openEventModal(false); render();
+    save(); openEventModal(false); render(); renderManagePanel();
   }
 
   /* ---- mutations ---- */
@@ -757,16 +768,16 @@
       save(); renderMain();
     } else if(t.hasAttribute('data-catcolor')){
       state.data.categories[t.getAttribute('data-catcolor')].color=t.value;
-      save(); renderMain(); renderLegend(); renderDrawer();
+      save(); renderMain(); renderLegend(); renderDrawer(); renderManagePanel();
     } else if(t.hasAttribute('data-ccat')){
       var c=getCourse(t.getAttribute('data-ccat')); if(c){ c.category=t.value; }
-      save(); renderMain(); renderDrawer();
+      save(); renderMain(); renderDrawer(); renderManagePanel();
     } else if(t.id==='evCourse'){
       var w=document.getElementById('evNewWrap'); if(w) w.style.display = t.value==='__new__'?'block':'none';
     } else if(t.hasAttribute('data-todotoggle')){
       var tt=t.getAttribute('data-todotoggle').split('|'); var l=todoList(tt[0]);
       for(var i=0;i<l.length;i++){ if(l[i].id===tt[1]){ l[i].done=t.checked; break; } }
-      save(); renderMain(); if(state.ui.drawer) renderDrawer();
+      save(); renderMain(); if(state.ui.drawer) renderDrawer(); renderManagePanel();
     }
   });
 
@@ -798,24 +809,25 @@
   });
 
   document.addEventListener('click',function(e){
-    var t=e.target.closest('[data-season],[data-view],[data-day],[data-schedule-tool],[data-x],[data-cdel],[data-tododel],[data-todoadd],[data-todoclear],#manageBtn,#closeDrawer,#scrim,#addCourse,#exportBtn,#importBtn,#printBtn,#resetBtn,#themeBtn,#addEventBtn,#evClose,#evCancel,#evScrim,#evSubmit');
+    var t=e.target.closest('[data-season],[data-view],[data-day],[data-schedule-tool],[data-x],[data-cdel],[data-tododel],[data-todoadd],[data-todoclear],#closeDrawer,#scrim,#addCategory,#addCourse,#exportBtn,#importBtn,#printBtn,#resetBtn,#themeBtn,#addEventBtn,#addEventTop,#addEventManage,#evClose,#evCancel,#evScrim,#evSubmit');
     if(!t) return;
 
     if(t.hasAttribute('data-schedule-tool')){
       var tool=t.getAttribute('data-schedule-tool');
       document.querySelectorAll('[data-schedule-tool]').forEach(function(x){x.classList.toggle('active',x===t);x.setAttribute('aria-selected',x===t?'true':'false');});
       document.querySelectorAll('[data-schedule-panel]').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-schedule-panel')===tool);});
+      if(tool==='manage') renderManagePanel();
     }
-    else if(t.hasAttribute('data-season')){ state.ui.season=t.getAttribute('data-season'); saveUI(); render(); }
-    else if(t.hasAttribute('data-view')){ state.ui.view=t.getAttribute('data-view'); saveUI(); render(); }
-    else if(t.hasAttribute('data-day')){ state.ui.day=t.getAttribute('data-day'); saveUI(); renderMain(); }
-    else if(t.id==='addEventBtn'){ openEventModal(true); }
+    else if(t.hasAttribute('data-season')){ state.ui.season=t.getAttribute('data-season'); saveUI(); render(); renderManagePanel(); }
+    else if(t.hasAttribute('data-view')){ state.ui.view=t.getAttribute('data-view'); saveUI(); render(); renderManagePanel(); }
+    else if(t.hasAttribute('data-day')){ state.ui.day=t.getAttribute('data-day'); saveUI(); renderMain(); renderManagePanel(); }
+    else if(t.id==='addEventBtn'||t.id==='addEventTop'||t.id==='addEventManage'){ openEventModal(true); }
     else if(t.id==='evClose'||t.id==='evCancel'||t.id==='evScrim'){ openEventModal(false); }
     else if(t.id==='evSubmit'){ submitEvent(); }
     else if(t.hasAttribute('data-tododel')){
       var td=t.getAttribute('data-tododel').split('|'); var arr=todoList(td[0]);
       for(var i=0;i<arr.length;i++){ if(arr[i].id===td[1]){ arr.splice(i,1); break; } }
-      save(); renderMain(); if(state.ui.drawer) renderDrawer();
+      save(); renderMain(); if(state.ui.drawer) renderDrawer(); renderManagePanel();
     }
     else if(t.hasAttribute('data-todoadd')){
       var scope=t.getAttribute('data-todoadd');
@@ -824,22 +836,30 @@
       if(!txt){ if(inp) inp.focus(); return; }
       var inDrawer = !!(box && box.closest('#drawerBody'));
       todoList(scope).push({id:'t'+(state.data.todoSeq++),text:txt,done:false});
-      save(); renderMain(); if(state.ui.drawer) renderDrawer();
-      var again=document.querySelector(inDrawer?'#drawerBody .todo-input':'main .todo-input'); if(again) again.focus();
+      save(); renderMain(); if(state.ui.drawer) renderDrawer(); renderManagePanel();
+      var again=document.querySelector(inDrawer?'#drawerBody .todo-input':(box&&box.closest('#managePanelBody')?'#managePanelBody .todo-input':'main .todo-input')); if(again) again.focus();
     }
     else if(t.hasAttribute('data-todoclear')){
       var sc=t.getAttribute('data-todoclear'); var a2=todoList(sc);
       var kept=a2.filter(function(x){return !x.done;}); a2.length=0;
       kept.forEach(function(x){a2.push(x);});
-      save(); renderMain(); if(state.ui.drawer) renderDrawer();
+      save(); renderMain(); if(state.ui.drawer) renderDrawer(); renderManagePanel();
     }
     else if(t.hasAttribute('data-x')){
       var k=parseKey(t.getAttribute('data-x'));
       state.data.schedules[k.sch].grid[k.slot][k.day].splice(k.idx,1);
       save(); renderMain();
     }
-    else if(t.id==='manageBtn'){ openDrawer(true); }
     else if(t.id==='closeDrawer'||t.id==='scrim'){ openDrawer(false); }
+    else if(t.id==='addCategory'){
+      var categoryName=document.getElementById('newCategoryName').value.trim();
+      var categoryColor=document.getElementById('newCategoryColor').value;
+      if(!categoryName){ document.getElementById('newCategoryName').focus(); return; }
+      var categoryId='custom'+Date.now();
+      state.data.categories[categoryId]={label:categoryName,color:categoryColor};
+      state.data.categoryOrder.push(categoryId);
+      save(); renderMain(); renderLegend(); renderManagePanel();
+    }
     else if(t.hasAttribute('data-cdel')){
       var id=t.getAttribute('data-cdel'); var cc=getCourse(id);
       if(cc && confirm('確定刪除「'+cc.name+'」？班表中已排的這門課會一併移除。')){
@@ -850,7 +870,7 @@
             g[sl[0]][dd[0]]=g[sl[0]][dd[0]].filter(function(x){return x!==id;});
           });});
         });
-        save(); renderMain(); renderDrawer();
+        save(); renderMain(); renderDrawer(); renderManagePanel();
       }
     }
     else if(t.id==='addCourse'){
@@ -859,15 +879,15 @@
       if(!nm){ document.getElementById('newCourseName').focus(); return; }
       var id='c'+(state.data.seq++);
       state.data.courses.push({id:id,name:nm,category:cat});
-      save(); renderMain(); renderDrawer();
-      var box=document.getElementById('drawerBody'); if(box) box.scrollTop=box.scrollHeight*0.5;
+      save(); renderMain(); renderDrawer(); renderManagePanel();
+      var box=document.getElementById('managePanelBody'); if(box) box.scrollTop=box.scrollHeight*0.5;
     }
     else if(t.id==='exportBtn'){ exportData(); }
     else if(t.id==='importBtn'){ document.getElementById('importFile').click(); }
     else if(t.id==='printBtn'){ window.print(); }
     else if(t.id==='resetBtn'){
       if(confirm('重設為一開始的預設班表？你目前的調整會被清除（建議先匯出備份）。')){
-        state.data=defaultData(); save(); render(); renderDrawer();
+        state.data=defaultData(); save(); render(); renderDrawer(); renderManagePanel();
       }
     }
     else if(t.id==='themeBtn'){ toggleTheme(); }
@@ -886,7 +906,7 @@
     r.onload=function(){
       try{
         var d=migrate(JSON.parse(r.result));
-        state.data=d; save(); render(); if(state.ui.drawer) renderDrawer();
+        state.data=d; save(); render(); if(state.ui.drawer) renderDrawer(); renderManagePanel();
         alert('匯入完成！');
       }catch(err){ alert('這個檔案讀不進來，請確認是本工具匯出的 .json 備份。'); }
     };
@@ -926,6 +946,7 @@
     else if(_mq.addListener) _mq.addListener(_onmq);
   }catch(e){}
   render();
+  renderManagePanel();
 })();
 </script>
 <script src="supabase-config.js"></script><script type="module" src="auth.js"></script>
