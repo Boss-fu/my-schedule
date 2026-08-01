@@ -9,6 +9,35 @@
     new MutationObserver(recolor).observe(document.documentElement,{childList:true,subtree:true});setInterval(recolor,300);
   })();
 </script>
+<script type="module">
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const uploadDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  async function bindReliableUpload(){
+    const form=document.getElementById('examUploadForm'),input=document.getElementById('examFile');
+    if(!form||!input||form.dataset.reliableUpload)return false;
+    form.dataset.reliableUpload='true';
+    form.onsubmit=async event=>{
+      event.preventDefault();
+      const file=input.files?.[0],studentId=document.getElementById('student')?.value,notice=document.getElementById('examUploadNotice');
+      if(!file||!studentId){notice.textContent='請先選擇檔案與學生。';return;}
+      if(file.size>10*1024*1024){notice.textContent='檔案不可超過 10MB。';return;}
+      if(!['application/pdf','image/jpeg','image/png'].includes(file.type)){notice.textContent='只支援 PDF、JPG 或 PNG。';return;}
+      let session=(await uploadDb.auth.getSession()).data.session;
+      const parentSession=window.parent!==window?window.parent.BOSSFU_AUTH_SESSION:null;
+      if(!session&&parentSession?.access_token&&parentSession?.refresh_token){session=(await uploadDb.auth.setSession(parentSession)).data.session;}
+      if(!session){notice.textContent='登入資訊已逾時，請先登出後重新登入。';return;}
+      const clean=file.name.replace(/[^\w.\-\u4e00-\u9fff]/g,'_'),path=studentId+'/'+Date.now()+'_'+clean;
+      notice.textContent='上傳中…';
+      const {error:uploadError}=await uploadDb.storage.from('exam-papers').upload(path,file,{contentType:file.type,upsert:false});
+      if(uploadError){notice.textContent='上傳失敗：'+uploadError.message;return;}
+      const {error:recordError}=await uploadDb.from('student_files').insert({student_id:studentId,uploader_id:session.user.id,file_name:file.name,storage_path:path});
+      if(recordError){notice.textContent='檔案已上傳，但登錄失敗：'+recordError.message;return;}
+      notice.textContent='已上傳，老師可在學生課務查看。';form.reset();
+    };
+    return true;
+  }
+  const uploadTimer=setInterval(()=>{if(bindReliableUpload())clearInterval(uploadTimer)},250);
+</script>
 <script type="module" src="parent-invoice-payment.js?v=20260802-invoice-sections"></script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';

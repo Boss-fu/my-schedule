@@ -81,6 +81,7 @@ async function applySession(session) {
   const existing = document.getElementById('authGate');
   if (!session) { if (!existing) showGate(); return; }
   latestSession = session;
+  window.BOSSFU_AUTH_SESSION = session;
   const { data } = await supabase.from('profiles').select('role,display_name,is_active,must_change_password').eq('id', session.user.id).single();
   const role = data?.role;
   // 教師不論由哪個入口登入，都統一回到教師客務後台。
@@ -120,7 +121,7 @@ supabase.auth.onAuthStateChange((event, session) => {
     location.reload();
     return;
   }
-  if (session) latestSession = session;
+  if (session) { latestSession = session; window.BOSSFU_AUTH_SESSION = session; }
   if (event === 'SIGNED_OUT') { latestSession = null; sessionStorage.removeItem('bossfu-teacher-session-ready'); }
   setTimeout(() => applySession(session), 0);
 });
