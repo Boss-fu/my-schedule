@@ -64,7 +64,12 @@ async function applySession(session) {
     showGate(isParentPage && role === 'parent' ? '此家長帳號尚未開通。' : isParentPage ? '此帳號沒有家長端權限。' : '此帳號沒有教師端權限。');
     return;
   }
-  if (role === 'parent' && data?.must_change_password) { showPasswordSetup(); return; }
+  // Supabase 會在登入與 token 初始化時各觸發一次事件；若每次都重建表單，
+  // 家長剛輸入的新密碼就會被清空，看起來像「無法輸入」。
+  if (role === 'parent' && data?.must_change_password) {
+    if (!document.getElementById('passwordSetupForm')) showPasswordSetup();
+    return;
+  }
   existing?.remove();
   // 教師端與家長端為獨立入口；登入後固定留在目前頁面，不顯示跨站捷徑。
 }
