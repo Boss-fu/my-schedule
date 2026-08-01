@@ -100,6 +100,11 @@ async function applySession(session) {
     if (!document.getElementById('passwordSetupForm')) showPasswordSetup();
     return;
   }
+  // parent.html 是唯一的登入／啟用入口；已完成啟用的家長才會前往內容頁。
+  if (isParentPage && role === 'parent') {
+    location.replace('parent-preview.html');
+    return;
+  }
   existing?.remove();
   document.body.classList.remove('auth-open');
   // 教師端與家長端為獨立入口；登入後固定留在目前頁面，不顯示跨站捷徑。
