@@ -347,6 +347,6 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
     document.addEventListener('click',openNotice);
     markItems();
     var list=document.getElementById('bellItems');
-    if(list)new MutationObserver(markItems).observe(list,{childList:true});
+    if(list&&typeof list.nodeType==='number')new MutationObserver(markItems).observe(list,{childList:true});
   })();
 </script>
