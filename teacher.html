@@ -42,7 +42,7 @@
 <section class="view" id="schedule"><iframe class="schedule-frame" title="個人課表" src="index.html?embed=teacher"></iframe></section>
 <section class="view" id="scheduleTools"><iframe class="schedule-frame" title="新增與管理行程" src="index.html?embed=teacher&tools=1&view=manage&v=20260804"></iframe></section>
 </main></div>
-<script src="supabase-config.js"></script><script type="module" src="finance-profile.js"></script><script type="module" src="student-rate.js"></script><script type="module" src="teacher-preview-labels.js"></script><script type="module" src="auth.js?v=20260802-session-ready"></script>
+<script src="supabase-config.js"></script><script type="module" src="finance-profile.js?v=20260802-payment-details"></script><script type="module" src="student-rate.js"></script><script type="module" src="teacher-preview-labels.js"></script><script type="module" src="auth.js?v=20260802-session-ready"></script>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 const db=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);let students=[],lessons=[],shownMonth=new Date().toISOString().slice(0,7);const $=id=>document.getElementById(id),money=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW'),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

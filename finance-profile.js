@@ -4,6 +4,11 @@ const db = createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.publi
 const settingKey = 'finance_profile';
 const localKey = 'bossfu-tutor-finance-profile';
 let profile = {};
+const defaultProfile = {
+  teacher: '福大自然（張家福）',
+  contact: 'LINE: jeffreyfuchang / Phone: 0978200135',
+  payment: '現金付款／以下帳戶匯款\n台新 (812) 28881008215019\n富邦 (012) 81680017605956',
+};
 
 async function loadProfile() {
   const { data } = await db.from('site_settings').select('value').eq('key', settingKey).maybeSingle();
@@ -11,6 +16,11 @@ async function loadProfile() {
   if (!Object.values(profile).some(Boolean)) {
     try { profile = JSON.parse(localStorage.getItem(localKey) || '{}'); } catch (_) { profile = {}; }
   }
+  profile = {
+    teacher: profile.teacher || defaultProfile.teacher,
+    contact: profile.contact || defaultProfile.contact,
+    payment: profile.payment || defaultProfile.payment,
+  };
   try { localStorage.setItem(localKey, JSON.stringify(profile)); } catch (_) {}
   window.BOSSFU_FINANCE_PROFILE = profile;
   return profile;
