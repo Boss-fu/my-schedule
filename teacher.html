@@ -83,6 +83,27 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
 </script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const teacherFilesDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  const teacherFilesEsc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  function addTeacherFileCenter(){
+    const anchor=document.getElementById('uploadedExamPapers');
+    if(!anchor||document.getElementById('teacherFileCenter'))return false;
+    anchor.insertAdjacentHTML('beforebegin','<div class="card" id="teacherFileCenter"><div class="calendar-head"><div><h2>檔案傳送</h2><p class="muted">選擇上方「學生課務」的學生後，可傳送講義、練習或參考資料；家長端會立即顯示。</p></div></div><form id="teacherFileForm" class="feedback-form"><input id="teacherFileInput" type="file" required><button class="btn primary" type="submit">傳送給家長</button><span id="teacherFileNotice" class="muted"></span></form><div id="teacherSharedFiles" style="margin-top:14px"></div></div>');
+    const form=document.getElementById('teacherFileForm'),input=document.getElementById('teacherFileInput'),notice=document.getElementById('teacherFileNotice'),list=document.getElementById('teacherSharedFiles');
+    async function renderSentFiles(){
+      const studentId=document.getElementById('workStudent')?.value;if(!studentId){list.innerHTML='<p class="empty">請先在上方選擇學生。</p>';return;}
+      const {data:{session}}=await teacherFilesDb.auth.getSession();
+      const {data:files}=await teacherFilesDb.from('student_files').select('id,file_name,storage_path,created_at,uploader_id').eq('student_id',studentId).order('created_at',{ascending:false});
+      const mine=(files||[]).filter(file=>file.uploader_id===session?.user?.id);
+      list.innerHTML=mine.length?'<p class="muted">已傳送給家長</p><table><thead><tr><th>檔案名稱</th><th>傳送時間</th><th></th></tr></thead><tbody>'+(await Promise.all(mine.map(async file=>{const {data}=await teacherFilesDb.storage.from('exam-papers').createSignedUrl(file.storage_path,3600);return '<tr><td>'+teacherFilesEsc(file.file_name)+'</td><td>'+new Date(file.created_at).toLocaleString('zh-TW')+'</td><td>'+(data?.signedUrl?'<a class="btn" href="'+teacherFilesEsc(data.signedUrl)+'" target="_blank" rel="noopener">開啟</a>':'<span class="muted">暫時無法開啟</span>')+'</td></tr>';}))).join('')+'</tbody></table>':'<p class="empty">尚未傳送檔案給這位學生。</p>';
+    }
+    form.addEventListener('submit',async event=>{event.preventDefault();const file=input.files?.[0],studentId=document.getElementById('workStudent')?.value;if(!studentId){notice.textContent='請先選擇學生。';return;}if(!file)return;if(file.size>10*1024*1024){notice.textContent='檔案不可超過 10MB。';return;}const {data:{session}}=await teacherFilesDb.auth.getSession();if(!session?.user){notice.textContent='登入已逾期，請重新登入。';return;}const ext=(file.name.match(/\.([a-z0-9]+)$/i)?.[1]||'file').toLowerCase().replace(/[^a-z0-9]/g,'')||'file',path=studentId+'/teacher_'+Date.now()+'_'+crypto.randomUUID().replace(/-/g,'')+'.'+ext;notice.textContent='傳送中…';const {error:uploadError}=await teacherFilesDb.storage.from('exam-papers').upload(path,file,{contentType:file.type,upsert:false});if(uploadError){notice.textContent='傳送失敗：'+uploadError.message;return;}const {error:recordError}=await teacherFilesDb.from('student_files').insert({student_id:studentId,uploader_id:session.user.id,file_name:file.name,storage_path:path});if(recordError){await teacherFilesDb.storage.from('exam-papers').remove([path]);notice.textContent='資料儲存失敗：'+recordError.message;return;}notice.textContent='已傳送，家長端的「檔案中心」可查看。';form.reset();renderSentFiles();});
+    document.getElementById('workStudent')?.addEventListener('change',renderSentFiles);renderSentFiles();return true;
+  }
+  const teacherFileTimer=setInterval(()=>{if(addTeacherFileCenter())clearInterval(teacherFileTimer);},250);
+</script>
+<script type="module">
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
   const interactiveNoticeDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
   let interactiveNotices=[];
   const escNotice=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));

@@ -11,6 +11,29 @@
 </script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const parentFilesDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  const parentFilesEsc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  async function addParentFileCenter(){
+    const tabs=document.querySelector('.tabs'),student=document.getElementById('student');
+    if(!tabs||!student||document.getElementById('fileCenter'))return false;
+    const section=document.createElement('section');section.id='fileCenter';section.className='view';section.innerHTML='<article class="card"><h2>檔案中心</h2><p class="muted">老師傳送的講義、練習與您上傳的考卷都會集中顯示在這裡。</p><div id="parentFileList"><p class="muted">載入檔案中…</p></div></article>';document.querySelector('.wrap').append(section);
+    const button=document.createElement('button');button.type='button';button.textContent='檔案中心';button.dataset.view='fileCenter';tabs.append(button);
+    button.onclick=()=>{document.querySelectorAll('[data-view],.view').forEach(node=>node.classList.remove('active'));button.classList.add('active');section.classList.add('active');renderParentFiles();};
+    async function renderParentFiles(){
+      const list=document.getElementById('parentFileList'),studentId=student.value;if(!studentId)return;
+      const {data:{session}}=await parentFilesDb.auth.getSession();
+      const {data:files,error}=await parentFilesDb.from('student_files').select('id,file_name,storage_path,created_at,uploader_id').eq('student_id',studentId).order('created_at',{ascending:false});
+      if(error){list.innerHTML='<p class="empty">目前無法讀取檔案，請重新整理後再試。</p>';return;}
+      if(!files?.length){list.innerHTML='<p class="empty">目前尚無檔案。</p>';return;}
+      const rows=await Promise.all(files.map(async file=>{const {data}=await parentFilesDb.storage.from('exam-papers').createSignedUrl(file.storage_path,3600);const label=file.uploader_id===session?.user?.id?'您上傳的檔案':'老師傳送的檔案';return '<tr><td><b>'+label+'</b><br>'+parentFilesEsc(file.file_name)+'</td><td>'+new Date(file.created_at).toLocaleString('zh-TW')+'</td><td>'+(data?.signedUrl?'<a class="btn" href="'+parentFilesEsc(data.signedUrl)+'" target="_blank" rel="noopener">開啟閱覽</a>':'<span class="muted">暫時無法開啟</span>')+'</td></tr>';}));
+      list.innerHTML='<table><thead><tr><th>檔案</th><th>時間</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+    }
+    student.addEventListener('change',renderParentFiles);return true;
+  }
+  const parentFileTimer=setInterval(async()=>{if(await addParentFileCenter())clearInterval(parentFileTimer);},250);
+</script>
+<script type="module">
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
   const uploadDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
   async function bindReliableUpload(){
     const form=document.getElementById('examUploadForm'),input=document.getElementById('examFile');
