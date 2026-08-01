@@ -9,6 +9,35 @@
     new MutationObserver(recolor).observe(document.documentElement,{childList:true,subtree:true});setInterval(recolor,300);
   })();
 </script>
+<script type="module">
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const tabNoticeDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  const tabEsc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  function badge(view,total){const tab=document.querySelector('[data-view="'+view+'"]');if(!tab)return;let node=tab.querySelector('.tab-notice-badge');if(!node){node=document.createElement('i');node.className='tab-notice-badge';node.style.cssText='display:none;position:absolute;right:4px;top:4px;min-width:19px;height:19px;padding:0 5px;border-radius:20px;background:#d84646;color:#fff;font:11px/19px system-ui;font-style:normal;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.2)';tab.style.position='relative';tab.append(node);}node.textContent=total>99?'99+':total;node.style.display=total?'block':'none';}
+  async function enableTabNotices(){
+    const {data:{session}}=await tabNoticeDb.auth.getSession();if(!session?.user)return;
+    const {data:profile}=await tabNoticeDb.from('profiles').select('role').eq('id',session.user.id).single();if(profile?.role!=='parent')return;
+    document.getElementById('parentBell')?.parentElement?.setAttribute('style','display:none');
+    const readKey='bossfu-parent-read-notices',courseKey='bossfu-parent-known-courses';
+    async function refresh(){
+      const [{data:messages},{data:files},{data:lessons}]=await Promise.all([
+        tabNoticeDb.from('messages').select('id').eq('author_role','teacher'),
+        tabNoticeDb.from('student_files').select('id,uploader_id').neq('uploader_id',session.user.id),
+        tabNoticeDb.from('lessons').select('id')
+      ]);
+      const read=new Set(JSON.parse(localStorage.getItem(readKey)||'[]')),courseIds=(lessons||[]).map(item=>'course:'+item.id);let known=JSON.parse(localStorage.getItem(courseKey)||'null');if(!known){known=courseIds;localStorage.setItem(courseKey,JSON.stringify(known));}const knownSet=new Set(known);
+      badge('feedback',(messages||[]).filter(item=>!read.has('message:'+item.id)).length);badge('fileCenter',(files||[]).filter(item=>!read.has('file:'+item.id)).length);badge('coursework',courseIds.filter(id=>!knownSet.has(id)).length);
+      const now=new Date(),month=now.toISOString().slice(0,7),lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),invoiceKey='bossfu-parent-invoice-read:'+month,invoiceDue=now.getDate()===lastDay&&!localStorage.getItem(invoiceKey);badge('invoice',invoiceDue?1:0);
+      let reminder=document.getElementById('invoiceDueReminder');if(invoiceDue&&!reminder){reminder=document.createElement('div');reminder.id='invoiceDueReminder';reminder.style.cssText='margin-bottom:12px;padding:12px 14px;border-radius:9px;background:#fff4df;border-left:4px solid #d79220;color:#805312;font-weight:800';reminder.textContent=month+' 學費單已產生，請查看本月應繳費用。';document.querySelector('#invoice .card')?.before(reminder);}if(!invoiceDue)reminder?.remove();
+    }
+    document.querySelector('[data-view="feedback"]')?.addEventListener('click',()=>{const read=new Set(JSON.parse(localStorage.getItem(readKey)||'[]'));document.querySelectorAll('#feedbackList .message').forEach(()=>{});tabNoticeDb.from('messages').select('id').eq('author_role','teacher').then(({data})=>{(data||[]).forEach(item=>read.add('message:'+item.id));localStorage.setItem(readKey,JSON.stringify([...read]));refresh();});});
+    document.querySelector('[data-view="fileCenter"]')?.addEventListener('click',()=>{const read=new Set(JSON.parse(localStorage.getItem(readKey)||'[]'));tabNoticeDb.from('student_files').select('id,uploader_id').neq('uploader_id',session.user.id).then(({data})=>{(data||[]).forEach(item=>read.add('file:'+item.id));localStorage.setItem(readKey,JSON.stringify([...read]));refresh();});});
+    document.querySelector('[data-view="coursework"]')?.addEventListener('click',()=>tabNoticeDb.from('lessons').select('id').then(({data})=>{localStorage.setItem(courseKey,JSON.stringify((data||[]).map(item=>'course:'+item.id)));refresh();}));
+    document.querySelector('[data-view="invoice"]')?.addEventListener('click',()=>{localStorage.setItem('bossfu-parent-invoice-read:'+new Date().toISOString().slice(0,7),'1');refresh();});
+    await refresh();setInterval(refresh,30000);
+  }
+  setTimeout(enableTabNotices,2300);
+</script>
 <script>
   const mobileTabStyle=document.createElement('style');
   mobileTabStyle.textContent='.tabs{margin-top:20px;padding-top:4px}.tabs button{padding-right:28px}.tabs button .tab-notice-badge{right:4px!important;top:4px!important}@media(max-width:650px){.head{margin-bottom:22px}.tabs{margin-top:0;padding-top:8px}}';
