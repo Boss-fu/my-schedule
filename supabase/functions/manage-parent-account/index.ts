@@ -23,6 +23,7 @@ Deno.serve(async (request) => {
   if (!user || teacher?.role !== 'teacher') return json({ error: '沒有教師權限。' }, 403)
 
   const payload = await request.json()
+  const requestedParentId = String(payload.parent_id || '').trim()
   const phone = String(payload.phone || '').replace(/\D/g, '')
   const password = String(payload.password || '')
   const displayName = String(payload.display_name || '').trim()
@@ -30,7 +31,17 @@ Deno.serve(async (request) => {
   const isActive = Boolean(payload.is_active)
   if (!/^09\d{8}$/.test(phone) || !displayName || !studentIds.length) return json({ error: '請填寫家長姓名、手機號碼並至少選擇一位學生。' }, 400)
 
-  const { data: existing } = await admin.from('profiles').select('id').eq('phone', phone).eq('role', 'parent').maybeSingle()
+  let existing: { id: string } | null = null
+  if (requestedParentId) {
+    const { data: selected } = await admin.from('profiles').select('id').eq('id', requestedParentId).eq('role', 'parent').maybeSingle()
+    if (!selected) return json({ error: '找不到要編輯的家長帳號。' }, 404)
+    existing = selected
+    const { data: duplicate } = await admin.from('profiles').select('id').eq('phone', phone).eq('role', 'parent').neq('id', requestedParentId).maybeSingle()
+    if (duplicate) return json({ error: '此手機號碼已被另一個家長帳號使用。' }, 400)
+  } else {
+    const { data: matched } = await admin.from('profiles').select('id').eq('phone', phone).eq('role', 'parent').maybeSingle()
+    existing = matched
+  }
   let parentId = existing?.id
   if (!parentId) {
     const initialPassword = password || '00000000'
@@ -39,7 +50,7 @@ Deno.serve(async (request) => {
     if (error || !data.user) return json({ error: error?.message || '建立帳號失敗。' }, 400)
     parentId = data.user.id
   } else {
-    const update: Record<string, unknown> = { ban_duration: isActive ? 'none' : '876000h' }
+    const update: Record<string, unknown> = { ban_duration: isActive ? 'none' : '876000h', email: `u${phone}@bossfu-tutor.com` }
     if (password) update.password = password
     const { error } = await admin.auth.admin.updateUserById(parentId, update)
     if (error) return json({ error: error.message }, 400)
