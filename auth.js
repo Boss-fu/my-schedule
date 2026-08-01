@@ -102,7 +102,7 @@ async function applySession(session) {
   }
   // parent.html 是唯一的登入／啟用入口；已完成啟用的家長才會前往內容頁。
   if (isParentPage && role === 'parent') {
-    location.replace('parent-preview.html');
+    location.replace('parent-preview.html?v=20260802-parent-logout');
     return;
   }
   existing?.remove();

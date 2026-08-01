@@ -29,3 +29,21 @@
   async function initPortal(){const{data:{session}}=await portalDb.auth.getSession();if(!session)return;const{data:profile}=await portalDb.from('profiles').select('role').eq('id',session.user.id).single();portalRole=profile?.role||'parent';if(portalRole==='teacher'){document.querySelector('#feedback h2').textContent='老師回饋';document.querySelector('#feedback .muted').textContent='此處送出的內容會標記為老師回饋；學生資料維持唯讀。';feedbackForm.querySelector('textarea').placeholder='請輸入要提供給家長的回饋…';feedbackForm.querySelector('button').textContent='送出老師回饋';}else showUpload();await refreshMessages();studentPicker.addEventListener('change',()=>setTimeout(refreshMessages,250));document.addEventListener('submit',async e=>{if(e.target!==feedbackForm)return;if(portalRole==='teacher'){e.preventDefault();e.stopImmediatePropagation();const body=document.getElementById('feedbackBody').value.trim();if(!body)return;const{error}=await portalDb.from('messages').insert({student_id:studentPicker.value,author_id:session.user.id,body,author_role:'teacher'});document.getElementById('feedbackNotice').textContent=error?'送出失敗：'+error.message:'已送出老師回饋。';if(!error){document.getElementById('feedbackBody').value='';await refreshMessages()}}else setTimeout(refreshMessages,800)},true)}
   setTimeout(initPortal,1000);
 </script>
+<script type="module">
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const logoutDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  async function addParentLogout(){
+    const {data:{session}}=await logoutDb.auth.getSession();
+    if(!session)return;
+    const {data:profile}=await logoutDb.from('profiles').select('role').eq('id',session.user.id).single();
+    if(profile?.role!=='parent')return;
+    const head=document.querySelector('.head');
+    if(!head||document.getElementById('parentLogout'))return;
+    const button=document.createElement('button');
+    button.id='parentLogout';button.type='button';button.textContent='登出';
+    button.style.cssText='border:1px solid #d6e0ea;border-radius:8px;background:#fff;color:#526477;padding:8px 12px;font:700 14px system-ui;cursor:pointer';
+    button.onclick=async()=>{button.disabled=true;button.textContent='登出中…';await logoutDb.auth.signOut();location.replace('parent.html');};
+    head.append(button);
+  }
+  setTimeout(addParentLogout,900);
+</script>
