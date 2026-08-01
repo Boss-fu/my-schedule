@@ -254,6 +254,15 @@
   .todo-mini-title{font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:6px}
   .drawer-todo .todo-text{font-size:14px}
 
+  /* ---------- schedule tools ---------- */
+  .schedule-tools{max-width:1180px;margin:18px auto 0;padding:0 clamp(14px,3.5vw,26px)}
+  .schedule-tools-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .schedule-tools-tabs{display:flex;gap:3px;padding:7px 8px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+  .schedule-tools-tab{appearance:none;border:0;border-radius:8px;background:transparent;color:var(--text-dim);font:inherit;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer}
+  .schedule-tools-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+  .schedule-tools-panel{display:none;padding:14px 16px;align-items:center;justify-content:space-between;gap:12px}
+  .schedule-tools-panel.active{display:flex}.schedule-tools-panel p{margin:0;color:var(--text-dim);font-size:13px}
+
   /* ---------- 新增行程 modal ---------- */
   .ev-scrim{position:fixed;inset:0;background:rgba(10,14,22,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
   .ev-scrim.open{opacity:1;pointer-events:auto}
@@ -276,6 +285,7 @@
     .brand h1{font-size:17px}
     .seg button{padding:6px 11px;font-size:13px}
     main{padding:14px}
+    .schedule-tools-panel{align-items:flex-start;flex-direction:column}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
@@ -297,12 +307,19 @@
     <div class="topbar-actions">
       <div class="seg" id="viewToggle"></div>
       <button class="btn btn-ghost btn-icon" id="themeBtn" title="切換深色/淺色" aria-label="切換主題">🌓</button>
-      <button class="btn btn-primary" id="addEventBtn" title="新增行程">＋ 行程</button>
-      <a class="btn" href="teacher.html#finance" target="_top">財務／學費單</a>
-      <button class="btn" id="manageBtn">管理</button>
     </div>
   </header>
   <main id="main"></main>
+  <section class="schedule-tools" aria-label="個人課表設定">
+    <div class="schedule-tools-card">
+      <div class="schedule-tools-tabs" role="tablist">
+        <button class="schedule-tools-tab active" type="button" data-schedule-tool="add" role="tab">新增行程</button>
+        <button class="schedule-tools-tab" type="button" data-schedule-tool="manage" role="tab">管理課程</button>
+      </div>
+      <div class="schedule-tools-panel active" data-schedule-panel="add"><p>新增一筆行程到目前選取的班表與時段。</p><button class="btn btn-primary" id="addEventBtn" type="button">＋ 新增行程</button></div>
+      <div class="schedule-tools-panel" data-schedule-panel="manage"><p>在這裡設定課程名稱、分類顏色、待辦與班表備份。</p><button class="btn" id="manageBtn" type="button">開啟課表管理</button></div>
+    </div>
+  </section>
   <footer class="legend" id="legend"></footer>
 </div>
 
@@ -778,10 +795,15 @@
   });
 
   document.addEventListener('click',function(e){
-    var t=e.target.closest('[data-season],[data-view],[data-day],[data-x],[data-cdel],[data-tododel],[data-todoadd],[data-todoclear],#manageBtn,#closeDrawer,#scrim,#addCourse,#exportBtn,#importBtn,#printBtn,#resetBtn,#themeBtn,#addEventBtn,#evClose,#evCancel,#evScrim,#evSubmit');
+    var t=e.target.closest('[data-season],[data-view],[data-day],[data-schedule-tool],[data-x],[data-cdel],[data-tododel],[data-todoadd],[data-todoclear],#manageBtn,#closeDrawer,#scrim,#addCourse,#exportBtn,#importBtn,#printBtn,#resetBtn,#themeBtn,#addEventBtn,#evClose,#evCancel,#evScrim,#evSubmit');
     if(!t) return;
 
-    if(t.hasAttribute('data-season')){ state.ui.season=t.getAttribute('data-season'); saveUI(); render(); }
+    if(t.hasAttribute('data-schedule-tool')){
+      var tool=t.getAttribute('data-schedule-tool');
+      document.querySelectorAll('[data-schedule-tool]').forEach(function(x){x.classList.toggle('active',x===t);x.setAttribute('aria-selected',x===t?'true':'false');});
+      document.querySelectorAll('[data-schedule-panel]').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-schedule-panel')===tool);});
+    }
+    else if(t.hasAttribute('data-season')){ state.ui.season=t.getAttribute('data-season'); saveUI(); render(); }
     else if(t.hasAttribute('data-view')){ state.ui.view=t.getAttribute('data-view'); saveUI(); render(); }
     else if(t.hasAttribute('data-day')){ state.ui.day=t.getAttribute('data-day'); saveUI(); renderMain(); }
     else if(t.id==='addEventBtn'){ openEventModal(true); }
