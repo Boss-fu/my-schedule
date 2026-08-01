@@ -9,3 +9,12 @@
     new MutationObserver(recolor).observe(document.documentElement,{childList:true,subtree:true});setInterval(recolor,300);
   })();
 </script>
+<script type="module">
+  import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+  const profileDb=createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
+  const head=document.querySelector('.head'),studentSelect=document.getElementById('student');
+  const profile=document.createElement('section');profile.id='parentStudentProfile';profile.style.cssText='display:none;background:#fff;border:1px solid #dbe4ee;border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:0 3px 14px rgba(25,45,72,.05)';head.insertAdjacentElement('afterend',profile);
+  document.querySelector('.head label').style.fontSize='13px';
+  async function showProfile(){const id=studentSelect.value;if(!id)return;const{data}=await profileDb.from('students').select('name,grade,subjects,parent_name,parent_contact').eq('id',id).single();if(!data)return;profile.style.display='block';profile.innerHTML='<div style="font-size:12px;font-weight:800;color:#657388;letter-spacing:.08em">學生基本資料</div><div style="font-size:28px;font-weight:850;margin:2px 0 14px;color:#1b2735">'+String(data.name||'N/A').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px"><div style="padding:10px;background:#f4f7fb;border-radius:8px"><b style="display:block;font-size:12px;color:#657388">年級</b>'+(data.grade||'N/A')+'</div><div style="padding:10px;background:#f4f7fb;border-radius:8px"><b style="display:block;font-size:12px;color:#657388">教學科目</b>'+(data.subjects||'N/A')+'</div><div style="padding:10px;background:#f4f7fb;border-radius:8px"><b style="display:block;font-size:12px;color:#657388">家長姓名</b>'+(data.parent_name||'N/A')+'</div><div style="padding:10px;background:#f4f7fb;border-radius:8px"><b style="display:block;font-size:12px;color:#657388">家長聯絡方式</b>'+(data.parent_contact||'N/A')+'</div></div>'}
+  studentSelect.addEventListener('change',showProfile);new MutationObserver(showProfile).observe(studentSelect,{childList:true});setTimeout(showProfile,900);
+</script>
