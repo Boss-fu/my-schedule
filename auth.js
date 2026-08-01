@@ -100,9 +100,11 @@ async function applySession(session) {
     if (!document.getElementById('passwordSetupForm')) showPasswordSetup();
     return;
   }
-  // parent.html 是唯一的登入／啟用入口；已完成啟用的家長才會前往內容頁。
+  // parent.html 是唯一的登入／啟用入口；完成啟用後在相同網址載入家長內容。
   if (isParentPage && role === 'parent') {
-    location.replace('parent-preview.html?v=20260802-parent-logout');
+    existing?.remove();
+    document.body.classList.remove('auth-open');
+    window.BossfuOpenParentPortal?.();
     return;
   }
   existing?.remove();
