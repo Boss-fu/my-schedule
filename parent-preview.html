@@ -38,6 +38,23 @@
   }
   const uploadTimer=setInterval(()=>{if(bindReliableUpload())clearInterval(uploadTimer)},250);
 </script>
+<script>
+  (function(){
+    const style=document.createElement('style');
+    style.textContent='#feedbackList{display:flex;flex-direction:column-reverse;gap:10px}.message{width:fit-content;max-width:min(78%,620px);margin:0;padding:11px 13px;border-radius:16px;box-shadow:0 1px 2px rgba(25,45,72,.06);line-height:1.55}.message.from-teacher{align-self:flex-start;background:#e8f3ff;border:1px solid #c5ddf5;color:#1d4f7d;border-bottom-left-radius:4px}.message.from-parent{align-self:flex-end;background:#e8f7ef;border:1px solid #c5e6d2;color:#195c42;border-bottom-right-radius:4px}.message b{font-size:12px}.message small{opacity:.7;margin-top:5px}@media(max-width:650px){.message{max-width:88%}}';
+    document.head.append(style);
+    function paintMessages(){
+      document.querySelectorAll('#feedbackList .message').forEach(node=>{
+        const sender=node.querySelector('b')?.textContent||'';
+        node.classList.toggle('from-teacher',sender.includes('老師'));
+        node.classList.toggle('from-parent',!sender.includes('老師'));
+      });
+    }
+    const list=document.getElementById('feedbackList');
+    if(list)new MutationObserver(paintMessages).observe(list,{childList:true,subtree:true});
+    setInterval(paintMessages,800);
+  })();
+</script>
 <script type="module" src="parent-invoice-payment.js?v=20260802-invoice-sections"></script>
 <script type="module">
   import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
