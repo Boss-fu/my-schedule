@@ -311,3 +311,42 @@ function printInvoice(){const month=$('financeMonth').value,id=$('financeStudent
   async function refreshBell(){const{data:{session}}=await notifyDb.auth.getSession();if(!session)return;const[{data:messages},{data:files}]=await Promise.all([notifyDb.from('messages').select('id,body,created_at,student_id,students(name)').eq('author_role','parent').order('created_at',{ascending:false}).limit(30),notifyDb.from('student_files').select('id,file_name,created_at,student_id,students(name)').order('created_at',{ascending:false}).limit(30)]);notices=[...(messages||[]).map(x=>({...x,kind:'家長回饋',text:x.body})),...(files||[]).map(x=>({...x,kind:'段考卷上傳',text:x.file_name}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));const unread=notices.filter(x=>!read().has(x.id));const count=document.getElementById('bellCount');count.textContent=unread.length>99?'99+':unread.length;count.style.display=unread.length?'block':'none';document.getElementById('bellItems').innerHTML=notices.length?notices.map(x=>'<div style="padding:10px 2px;border-bottom:1px solid #edf1f5"><b style="font-size:12px;color:#2869a8">'+x.kind+'｜'+(x.students?.name||'學生')+'</b><br><span>'+String(x.text||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</span><small style="display:block;color:#657388;margin-top:3px">'+new Date(x.created_at).toLocaleString('zh-TW')+'</small></div>').join(''):'<p class="muted">目前沒有通知。</p>'}
   document.getElementById('teacherBell').onclick=()=>{const p=document.getElementById('bellPanel');p.style.display=p.style.display==='block'?'none':'block';if(p.style.display==='block'){localStorage.setItem(key,JSON.stringify(notices.map(x=>x.id)));refreshBell()}};setTimeout(refreshBell,1200);setInterval(refreshBell,30000);
 </script>
+<script>
+  /* 通知中心的每一則內容都可直接進入相對應學生與工作區。 */
+  (function(){
+    function studentIdFor(name){
+      var option=[...document.querySelectorAll('#workStudent option,#fileStudent option,#serviceStudent option')]
+        .find(function(node){return node.textContent.trim()===name;});
+      return option?.value||'';
+    }
+    function selectStudent(id, selector){
+      var select=document.querySelector(selector);
+      if(!select||!id)return;
+      select.value=id;
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    function openNotice(event){
+      var item=event.target.closest('#bellItems > div');
+      if(!item)return;
+      var label=item.querySelector('b')?.textContent||'';
+      var studentName=(label.split('｜')[1]||'').trim();
+      var studentId=studentIdFor(studentName);
+      document.getElementById('bellPanel').style.display='none';
+      if(label.includes('段考卷')||label.includes('檔案')){
+        document.querySelector('[data-view="files"]')?.click();
+        setTimeout(function(){selectStudent(studentId,'#fileStudent');},120);
+      }else{
+        document.querySelector('[data-view="parentPreview"]')?.click();
+        setTimeout(function(){
+          var frame=document.querySelector('iframe[title="家長頁面預覽"]');
+          frame?.contentWindow?.postMessage({type:'bossfu-open-parent-communication',studentId:studentId},location.origin);
+        },450);
+      }
+    }
+    function markItems(){document.querySelectorAll('#bellItems > div').forEach(function(item){item.style.cursor='pointer';item.title='點選前往對應內容';});}
+    document.addEventListener('click',openNotice);
+    markItems();
+    var list=document.getElementById('bellItems');
+    if(list)new MutationObserver(markItems).observe(list,{childList:true});
+  })();
+</script>
