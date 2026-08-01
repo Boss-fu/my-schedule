@@ -10,6 +10,9 @@
   })();
 </script>
 <script>
+  const parentPolish=document.createElement('link');parentPolish.rel='stylesheet';parentPolish.href='ui-polish.css?v=1';document.head.append(parentPolish);
+</script>
+<script>
   setTimeout(()=>{const title=document.querySelector('.head h1');if(title&&!document.getElementById('parentBrandIcon')){const icon=document.createElement('img');icon.id='parentBrandIcon';icon.src='icon-192-v3.png';icon.alt='福大自然';icon.style.cssText='width:38px;height:38px;border-radius:10px;vertical-align:middle;margin-right:9px';title.prepend(icon);}},300);
 </script>
 <script type="module">
