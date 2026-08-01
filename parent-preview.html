@@ -26,7 +26,9 @@
       const parentSession=window.parent!==window?window.parent.BOSSFU_AUTH_SESSION:null;
       if(!session&&parentSession?.access_token&&parentSession?.refresh_token){session=(await uploadDb.auth.setSession(parentSession)).data.session;}
       if(!session){notice.textContent='登入資訊已逾時，請先登出後重新登入。';return;}
-      const clean=file.name.replace(/[^\w.\-\u4e00-\u9fff]/g,'_'),path=studentId+'/'+Date.now()+'_'+clean;
+      // Storage object key 僅使用安全英數字元；原始中文檔名仍記錄在資料表供老師閱讀。
+      const extension=(file.name.match(/\.[A-Za-z0-9]+$/)?.[0]||'').toLowerCase();
+      const clean='exam_paper'+extension,path=studentId+'/'+Date.now()+'_'+clean;
       notice.textContent='上傳中…';
       const {error:uploadError}=await uploadDb.storage.from('exam-papers').upload(path,file,{contentType:file.type,upsert:false});
       if(uploadError){notice.textContent='上傳失敗：'+uploadError.message;return;}
