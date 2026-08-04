@@ -110,7 +110,37 @@ const check = (name, cond, extra='') => {
     check('編輯請假課次時帶出 leave', $('formStatus').value === 'leave', $('formStatus').value);
   } else check('找得到請假課次的修改鈕', false);
 
+  console.log('\n=== 刪除課次 ===');
+  cta.dispatchEvent(new win.MouseEvent('click', { bubbles:true }));   // 回到新增模式
+  await new Promise(r => setTimeout(r, 80));
+  check('新增模式不顯示刪除鈕', $('deleteLesson').hidden === true, `hidden=${$('deleteLesson').hidden}`);
+  const editExisting = doc.querySelector('[data-id="l1"]');
+  editExisting.dispatchEvent(new win.MouseEvent('click', { bubbles:true }));
+  await new Promise(r => setTimeout(r, 80));
+  check('修改既有課次時顯示刪除鈕', $('deleteLesson').hidden === false, `hidden=${$('deleteLesson').hidden}`);
+  $('resetForm').dispatchEvent(new win.MouseEvent('click', { bubbles:true }));
+  await new Promise(r => setTimeout(r, 60));
+  check('取消修改後刪除鈕收起', $('deleteLesson').hidden === true);
+
+  console.log('\n=== 重新渲染不可清掉編輯中的選擇 ===');
+  // Supabase 會定期更新 token 並觸發重新載入；切換月份也會。
+  // 若下拉被重建卻沒保留選取值，課次就會存到錯誤的學生身上。
+  doc.querySelector('[data-view="lessons"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 80));
+  cta.dispatchEvent(new win.MouseEvent('click', { bubbles:true }));
+  await new Promise(r => setTimeout(r, 80));
+  $('formStudent').value = 's2';
+  $('formStatus').value = 'leave';
+  const beforeStudent = $('formStudent').value;
+  doc.querySelector('[data-month="next"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 150));
+  check('切換月份後仍保留所選學生', $('formStudent').value === beforeStudent,
+        `切換前 ${beforeStudent} → 切換後 ${$('formStudent').value}`);
+  check('切換月份後仍保留出席狀態', $('formStatus').value === 'leave', $('formStatus').value);
+
   console.log('\n=== 金額口徑一致 ===');
+  doc.querySelector('[data-month="prev"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 120));
   doc.querySelector('[data-view="finance"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
   await new Promise(r => setTimeout(r, 120));
   const financeText = $('financeCards').textContent;
