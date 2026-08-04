@@ -1,0 +1,115 @@
+/* ==========================================================================
+   福大自然家教管理系統 — 共用設計主題
+   對齊「茲茲文教設計系統」：stone-50 工作台底色、白卡片、slate 中性字、
+   tzu-red 主色只用於 CTA 與 active 狀態，tzu-orange 用於次強調。
+   ========================================================================== */
+
+:root{
+  /* 品牌色 */
+  --tzu-red:#850103;
+  --tzu-red-hover:#6a0002;
+  --tzu-orange:#f9a12c;
+  --tzu-gold:#af9a6b;
+
+  /* 中性色（Tailwind slate / stone） */
+  --page:#fafaf9;        /* stone-50 整頁背景 */
+  --surface:#ffffff;     /* 卡片 */
+  --surface-2:#f8fafc;   /* slate-50 表頭、次要區塊 */
+  --surface-3:#f1f5f9;   /* slate-100 */
+  --line:#e2e8f0;        /* slate-200 邊框 */
+  --line-soft:#f1f5f9;   /* slate-100 分隔線 */
+  --line-strong:#cbd5e1; /* slate-300 */
+  --text:#1e293b;        /* slate-800 */
+  --text-2:#475569;      /* slate-600 */
+  --muted:#64748b;       /* slate-500 */
+  --muted-2:#94a3b8;     /* slate-400 */
+
+  /* 語意色 */
+  --ok-bg:#ecfdf5; --ok-line:#a7f3d0; --ok:#047857;      /* emerald */
+  --warn-bg:#fffbeb; --warn-line:#fde68a; --warn:#b45309; /* amber */
+  --danger-bg:#fff1f2; --danger-line:#fecdd3; --danger:#e11d48; /* rose */
+  --info-bg:#f0f9ff; --info-line:#bae6fd; --info:#0369a1;  /* sky */
+
+  /* 形狀 */
+  --r-lg:.5rem; --r-xl:.75rem; --r-2xl:1rem;
+  --shadow-sm:0 1px 2px 0 rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -2px rgba(0,0,0,.05);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -4px rgba(0,0,0,.05);
+
+  --font:"PingFang TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{font-family:var(--font)}
+input,select,textarea,button{font-family:inherit}
+body{margin:0;background:var(--page);color:var(--text);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+
+/* ---------- 文字階層：茲茲風格偏黑、層次明確 ---------- */
+h1{margin:0;font-size:20px;font-weight:900;letter-spacing:-.02em}
+h2{margin:0 0 5px;font-size:18px;font-weight:900;letter-spacing:-.01em}
+h3{margin:0;font-size:15px;font-weight:800}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:10px;font-weight:800;color:var(--muted-2);letter-spacing:.2em;text-transform:uppercase}
+
+/* ---------- 卡片 ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-2xl);
+  padding:18px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+
+/* ---------- 按鈕 ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);color:var(--text-2);
+  padding:8px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;
+  min-height:38px;transition:background .15s,border-color .15s,color .15s,transform .1s}
+.btn:hover{background:var(--surface-2);color:var(--text)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.primary,.btn-primary{background:var(--tzu-red);border-color:var(--tzu-red);color:#fff}
+.btn.primary:hover,.btn-primary:hover{background:var(--tzu-red-hover);border-color:var(--tzu-red-hover);color:#fff}
+.btn.danger,.btn-danger{color:var(--danger);border-color:var(--line)}
+.btn.danger:hover,.btn-danger:hover{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger)}
+
+/* ---------- 表單 ---------- */
+label{display:block;font-size:12px;font-weight:800;color:var(--text-2)}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:9px 11px;font:inherit;font-size:14px;background:var(--surface);color:var(--text);min-height:38px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--tzu-red);
+  box-shadow:0 0 0 3px rgba(133,1,3,.12)}
+textarea{min-height:76px;resize:vertical;line-height:1.6}
+select{appearance:none;padding-right:32px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2394a3b8' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center}
+
+/* 篩選／表單列 */
+.filters,.formgrid{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.filters label,.formgrid label{display:grid;gap:4px;min-width:150px;flex:1 1 150px}
+.filters{padding:12px;border:1px solid var(--line);border-radius:var(--r-xl);background:var(--surface-2)}
+
+/* ---------- 表格：桌機表格、手機卡片 ---------- */
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--surface-2);color:var(--muted);font-size:12px;font-weight:800;
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:12px;border-top:1px solid var(--line-soft);vertical-align:top}
+tbody tr:hover td{background:var(--surface-2)}
+
+/* ---------- 狀態標籤 ---------- */
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid transparent}
+.chip.ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-line)}
+.chip.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-line)}
+.chip.danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-line)}
+.chip.info{background:var(--info-bg);color:var(--info);border-color:var(--info-line)}
+
+/* ---------- 空狀態 ---------- */
+.empty{padding:32px 20px;text-align:center;color:var(--muted);font-size:14px}
+
+/* ---------- 指標卡 ---------- */
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:16px;box-shadow:var(--shadow-sm)}
+.metric b{display:block;font-size:26px;font-weight:900;letter-spacing:-.03em;line-height:1.2;color:var(--text)}
+.metric span{display:block;margin-top:3px;font-size:12px;font-weight:800;color:var(--muted)}
+
+/* ---------- 焦點可視性 ---------- */
+:focus-visible{outline:2px solid var(--tzu-red);outline-offset:2px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
