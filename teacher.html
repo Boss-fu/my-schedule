@@ -181,7 +181,7 @@
 <section class="view" id="files"><div class="card"><h2>檔案中心</h2><p class="muted">先指定學生，再傳送講義、練習或查看家長回傳的考卷。每次傳送皆會綁定目前選取的學生。</p><div id="teacherFilePage"></div></div></section>
 <section class="view" id="finance"><div class="card"><h2>學費與收入</h2><div class="filters"><label>月份<select id="financeMonth"></select></label><label>學生<select id="financeStudent"></select></label><button class="btn" id="clearFinanceFilter">全部學生</button><button class="btn primary" id="printInvoice">列印學費單</button></div><p class="filters"><button class="btn" data-month="prev">上個月</button><button class="btn primary" data-month="current">本月</button><button class="btn" data-month="next">下個月</button></p><div class="cards" id="financeCards"></div></div><div class="card"><h2>學生月費彙總</h2><p class="muted">依目前月份與學生篩選，統計實到課次的鐘點費用。</p><div id="financeSummary"></div></div><div class="card"><h2>每堂課收費明細</h2><div id="financeTable"></div></div></section>
 <section class="view" id="service"><div class="card"><h2>家長／學生當月學習狀況</h2><div class="filters"><label>月份<select id="serviceMonth"></select></label><label>學生<select id="serviceStudent"></select></label></div><div id="learningReport"></div></div></section>
-<section class="view" id="parentPreview"><div class="card"><h2>家長端預覽（教師專用）</h2><p class="muted">此處供教師檢視家長實際看到的資料；預覽沿用目前教師登入，不會再要求輸入帳密。</p><iframe class="schedule-frame" title="家長頁面預覽" src="parent-preview.html?v=20260802-shared-client"></iframe></div></section>
+<section class="view" id="parentPreview"><div class="card"><h2>家長端預覽（教師專用）</h2><p id="previewWho" class="chip info" hidden style="margin-bottom:10px"></p><p class="muted">此處供教師檢視家長實際看到的資料；預覽沿用目前教師登入，不會再要求輸入帳密。</p><iframe class="schedule-frame" title="家長頁面預覽" src="parent-preview.html?v=20260802-shared-client"></iframe></div></section>
 <section class="view" id="schedule"><iframe class="schedule-frame" title="個人課表" src="index.html?embed=teacher"></iframe></section>
 <section class="view" id="scheduleTools"><iframe class="schedule-frame" title="新增與管理行程" src="index.html?embed=teacher&tools=1&view=manage&v=20260804"></iframe></section>
 </main></div>
@@ -236,6 +236,25 @@ function setMonth(action){const d=action==='current'?new Date():new Date(shownMo
     w.document.close();w.focus();w.print();
   };
   $('printInvoice').onclick=window.BossfuPrintInvoice;
+</script>
+<script>
+  /* 教師可從家長帳號清單直接預覽某位家長看到的畫面；通知中心也走同一個入口。 */
+  window.BossfuPreviewParent = function(studentId, who){
+    document.querySelector('[data-view="parentPreview"]')?.click();
+    var label = document.getElementById('previewWho');
+    if (label) {
+      label.hidden = !who;
+      label.textContent = who ? '目前顯示：' + who + ' 看到的畫面' : '';
+    }
+    var frame = document.querySelector('iframe[title="家長頁面預覽"]');
+    if (!frame || !studentId) return;
+    var ask = function(){
+      frame.contentWindow?.postMessage(
+        { type: 'bossfu-open-parent-communication', studentId: studentId }, location.origin);
+    };
+    frame.addEventListener('load', ask, { once: true });
+    [150, 600, 1200].forEach(function(ms){ setTimeout(ask, ms); });
+  };
 </script>
 <script src="pwa.js"></script>
 <script type="module">
@@ -310,9 +329,10 @@ function setMonth(action){const d=action==='current'?new Date():new Date(shownMo
       const {createClient}=window.supabase;
       const db=(window.BOSSFU_DB ||= createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey)),root=document.getElementById('service'),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let students=[],accounts=[],links=[];
       function panel(){root.innerHTML='<div class="card"><h2>家長與學生資料表</h2><p class="muted">手機號碼即家長登入帳號；密碼只可設定或重設，不會以明碼保存或顯示。填寫完成後請按「儲存家長帳號」，才會建立並顯示在下方清單。停用後家長無法登入。</p><form id="parentAccountForm"><input type="hidden" id="parentAccountId"><div class="formgrid"><label>家長姓名<input id="parentAccountName" required placeholder="例如：桓安媽媽"></label><label>手機帳號<input id="parentAccountPhone" inputmode="tel" required placeholder="09xxxxxxxx"></label><label>密碼<input id="parentAccountPassword" type="password" minlength="6" placeholder="新帳號必填；既有帳號可留白"></label><label>帳號狀態<select id="parentAccountActive"><option value="true">已開通</option><option value="false">未開通／停用</option></select></label></div><p style="margin:16px 0 7px"><b>可查看學生（可複選）</b></p><div id="parentAccountStudents" style="display:flex;flex-wrap:wrap;gap:9px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px"></div><p><button class="btn primary">儲存家長帳號</button> <button class="btn" type="button" id="newParentAccount">清空表單／建立新家長</button> <span class="muted" id="parentAccountNotice"></span></p></form></div><div class="card"><h2>已建立家長帳號</h2><div id="parentAccountTable"></div></div>'}
-      function render(){const select=document.getElementById('parentAccountStudents');select.innerHTML=students.map(s=>'<label style="display:flex;align-items:center;gap:6px;min-width:auto;flex:none;color:#331a1b;font-size:14px"><input type="checkbox" name="parentAccountStudent" value="'+s.id+'">'+esc(s.name)+'</label>').join('');const rows=accounts.map(a=>{const names=links.filter(l=>l.parent_id===a.id).map(l=>l.students?.name||'').filter(Boolean).join('、')||'尚未對應';return '<tr><td>'+esc(a.display_name||'N/A')+'</td><td>'+esc(a.phone||'尚未設定')+'</td><td>'+esc(names)+'</td><td>'+(a.is_active?'<b style="color:#29806c">已開通</b>':'<b style="color:#a76a16">未開通</b>')+'</td><td><button class="btn" data-edit-parent="'+a.id+'">編輯</button></td></tr>'}).join('');document.getElementById('parentAccountTable').innerHTML=rows?'<table><thead><tr><th>家長</th><th>手機帳號</th><th>可查看學生</th><th>狀態</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>':'<p class="empty">尚未建立家長帳號。</p>'}
+      function firstStudentOf(parentId){const link=links.find(l=>l.parent_id===parentId);return link?link.student_id:'';}
+      function render(){const select=document.getElementById('parentAccountStudents');select.innerHTML=students.map(s=>'<label style="display:flex;align-items:center;gap:6px;min-width:auto;flex:none;color:#331a1b;font-size:14px"><input type="checkbox" name="parentAccountStudent" value="'+s.id+'">'+esc(s.name)+'</label>').join('');const rows=accounts.map(a=>{const names=links.filter(l=>l.parent_id===a.id).map(l=>l.students?.name||'').filter(Boolean).join('、')||'尚未對應';return '<tr><td data-label="家長">'+esc(a.display_name||'N/A')+'</td><td data-label="手機帳號">'+esc(a.phone||'尚未設定')+'</td><td data-label="可查看學生">'+esc(names)+'</td><td data-label="狀態">'+(a.is_active?'<b style="color:#29806c">已開通</b>':'<b style="color:#a76a16">未開通</b>')+'</td><td data-label="操作"><button class="btn" data-preview-parent="'+a.id+'" data-preview-student="'+(firstStudentOf(a.id)||'')+'" data-preview-name="'+esc(a.display_name||'此家長')+'">預覽家長畫面</button> <button class="btn" data-edit-parent="'+a.id+'">編輯</button></td></tr>'}).join('');document.getElementById('parentAccountTable').innerHTML=rows?'<table><thead><tr><th>家長</th><th>手機帳號</th><th>可查看學生</th><th>狀態</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>':'<p class="empty">尚未建立家長帳號。</p>'}
       async function load(){const[{data:s},{data:a},{data:l}]=await Promise.all([db.from('students').select('id,name').order('name'),db.from('profiles').select('id,display_name,phone,is_active,role').eq('role','parent').order('display_name'),db.from('parent_students').select('parent_id,student_id,students(name)')]);students=s||[];accounts=a||[];links=l||[];panel();render()}
-      root.addEventListener('click',e=>{const id=e.target.dataset.editParent;if(id){const a=accounts.find(x=>x.id===id),chosen=new Set(links.filter(l=>l.parent_id===id).map(l=>l.student_id));document.getElementById('parentAccountId').value=id;document.getElementById('parentAccountName').value=a.display_name||'';document.getElementById('parentAccountPhone').value=a.phone||'';document.getElementById('parentAccountPassword').value='';document.getElementById('parentAccountActive').value=String(a.is_active);document.querySelectorAll('[name="parentAccountStudent"]').forEach(o=>o.checked=chosen.has(o.value));}if(e.target.id==='newParentAccount'){document.getElementById('parentAccountForm').reset();document.getElementById('parentAccountId').value='';document.getElementById('parentAccountNotice').textContent='請填寫家長資料、勾選學生後，按「儲存家長帳號」。'}});
+      root.addEventListener('click',e=>{const preview=e.target.closest('[data-preview-parent]');if(preview){const studentId=preview.dataset.previewStudent;if(!studentId){alert('「'+preview.dataset.previewName+'」尚未指派學生，請先在上方勾選可查看學生。');return;}window.BossfuPreviewParent?.(studentId,preview.dataset.previewName);return;}const id=e.target.dataset.editParent;if(id){const a=accounts.find(x=>x.id===id),chosen=new Set(links.filter(l=>l.parent_id===id).map(l=>l.student_id));document.getElementById('parentAccountId').value=id;document.getElementById('parentAccountName').value=a.display_name||'';document.getElementById('parentAccountPhone').value=a.phone||'';document.getElementById('parentAccountPassword').value='';document.getElementById('parentAccountActive').value=String(a.is_active);document.querySelectorAll('[name="parentAccountStudent"]').forEach(o=>o.checked=chosen.has(o.value));}if(e.target.id==='newParentAccount'){document.getElementById('parentAccountForm').reset();document.getElementById('parentAccountId').value='';document.getElementById('parentAccountNotice').textContent='請填寫家長資料、勾選學生後，按「儲存家長帳號」。'}});
       root.addEventListener('submit',async e=>{if(e.target.id!=='parentAccountForm')return;e.preventDefault();const notice=document.getElementById('parentAccountNotice'),id=document.getElementById('parentAccountId').value,phone=document.getElementById('parentAccountPhone').value.trim(),name=document.getElementById('parentAccountName').value.trim(),password=document.getElementById('parentAccountPassword').value,body={parent_id:id||null,phone,display_name:name,password,is_active:document.getElementById('parentAccountActive').value==='true',student_ids:[...document.querySelectorAll('[name="parentAccountStudent"]:checked')].map(o=>o.value)};if(!name){notice.textContent='請填寫家長姓名。';return}if(!/^09\\d{8}$/.test(phone)){notice.textContent='請填寫正確的 10 碼手機號碼（09xxxxxxxx）。';return}if(!body.student_ids.length){notice.textContent='請至少勾選一位可查看學生。';return}if(!id&&password.length<6){notice.textContent='建立新家長帳號時，密碼至少需要 6 碼。';return}notice.textContent=id?'更新中…':'建立中…';const {error}=await db.functions.invoke('manage-parent-account',{body});let detail='';if(error?.context){try{detail=(await error.context.json()).error||''}catch(_){}}notice.textContent=error?'儲存失敗：'+(detail||error.message||'請稍後再試。'):id?'已更新家長帳號。':'已建立家長帳號。';if(!error)await load()});
       setTimeout(load,600);
     `;document.body.append(script);
@@ -469,12 +489,7 @@ function setMonth(action){const d=action==='current'?new Date():new Date(shownMo
       return;
     }
     // 家長回饋只在家長端預覽裡讀得到完整脈絡，切過去並請它開啟該學生的親師溝通。
-    document.querySelector('[data-view="parentPreview"]')?.click();
-    const frame=document.querySelector('iframe[title="家長頁面預覽"]');
-    if(!frame)return;
-    const ask=()=>frame.contentWindow?.postMessage({type:'bossfu-open-parent-communication',studentId:item.student_id},location.origin);
-    frame.addEventListener('load',ask,{once:true});
-    [150,600,1200].forEach(ms=>setTimeout(ask,ms));
+    window.BossfuPreviewParent?.(item.student_id, item.students?.name ? item.students.name+' 的家長' : '');
   }
   document.getElementById('bellItems').addEventListener('click',event=>{
     const btn=event.target.closest('[data-notice]');
