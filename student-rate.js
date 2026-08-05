@@ -4,19 +4,24 @@ const db = (window.BOSSFU_DB ||= createClient(window.SUPABASE_CONFIG.url, window
 const field = id => document.getElementById(id);
 
 async function fillRate() {
+  const box = field('studentDefaultRate');
+  if (!box) return;
   const id = field('workStudent')?.value;
-  if (!id || !field('studentDefaultRate')) { field('studentDefaultRate').value = ''; return; }
+  if (!id) { box.value = ''; return; }
   const { data } = await db.from('students').select('default_rate').eq('id', id).single();
-  field('studentDefaultRate').value = data?.default_rate ?? '';
+  box.value = data?.default_rate ?? '';
 }
 
 function setup() {
+  if (field('studentDefaultRate')) return true;      // already installed
   const name = field('studentName');
-  if (!name || field('studentDefaultRate')) return;
-  name.closest('.formgrid').insertAdjacentHTML('beforeend', '<label>預設鐘點費（每小時）<input id="studentDefaultRate" type="number" min="0" step="50" placeholder="例如：1000"></label>');
-  field('workStudent').addEventListener('change', () => setTimeout(fillRate, 0));
-  field('newStudent').addEventListener('click', () => { field('studentDefaultRate').value = ''; });
-  field('saveStudentProfile').addEventListener('click', async event => {
+  if (!name) return false;                            // panel not built yet
+  const grid = name.closest('.formgrid');
+  if (!grid) return false;
+  grid.insertAdjacentHTML('beforeend', '<label>預設鐘點費（每小時）<input id="studentDefaultRate" type="number" min="0" step="50" placeholder="例如：1000"></label>');
+  field('workStudent')?.addEventListener('change', () => setTimeout(fillRate, 0));
+  field('newStudent')?.addEventListener('click', () => { const box = field('studentDefaultRate'); if (box) box.value = ''; });
+  field('saveStudentProfile')?.addEventListener('click', async event => {
     event.preventDefault(); event.stopImmediatePropagation();
     const id = field('workStudent').value;
     const payload = {
@@ -32,6 +37,15 @@ function setup() {
     setTimeout(() => location.reload(), 600);
   }, true);
   fillRate();
+  return true;
 }
 
-setTimeout(setup, 0);
+// The student panel is injected by a later module, so a single attempt races
+// with it — on a slow device the rate field would simply never appear. Watch
+// for the panel instead, and stop as soon as the field is in place.
+if (!setup()) {
+  const observer = new MutationObserver(() => { if (setup()) observer.disconnect(); });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  // belt and braces: give up watching once the page has settled
+  setTimeout(() => observer.disconnect(), 15000);
+}
