@@ -77,15 +77,48 @@ function showPasswordSetup() {
   });
 }
 
+let appliedKey = null;
+let profileCache = null;
+
+function showTeacherNotice() {
+  if (document.getElementById('teacherOnParent')) return;
+  const bar = document.createElement('div');
+  bar.id = 'teacherOnParent';
+  bar.style.cssText = 'position:fixed;inset:0 0 auto 0;z-index:9998;display:flex;flex-wrap:wrap;'
+    + 'align-items:center;justify-content:center;gap:12px;padding:12px 16px;background:#fffbeb;'
+    + 'border-bottom:1px solid #fde68a;color:#b45309;'
+    + 'font:14px/1.5 "PingFang TC","Microsoft JhengHei",system-ui,sans-serif';
+  bar.innerHTML = '<span>您目前以<b>教師</b>身分登入，看到的是家長端畫面。</span>'
+    + '<a href="teacher.html" style="border:1px solid #b45309;border-radius:8px;background:#fff;'
+    + 'color:#b45309;padding:7px 14px;font-weight:700;text-decoration:none">回教師後台</a>';
+  document.body.append(bar);
+  document.body.style.paddingTop = '58px';
+}
+
 async function applySession(session) {
   const existing = document.getElementById('authGate');
-  if (!session) { if (!existing) showGate(); return; }
+  if (!session) { appliedKey = null; profileCache = null; if (!existing) showGate(); return; }
   latestSession = session;
   window.BOSSFU_AUTH_SESSION = session;
-  const { data } = await supabase.from('profiles').select('role,display_name,is_active,must_change_password').eq('id', session.user.id).single();
+  // 同一位使用者重複觸發事件時，不需要再查一次 profiles，也不需要重跑一次導向。
+  const key = session.user.id;
+  if (appliedKey === key && document.getElementById('authGate') === null) return;
+  let data = profileCache && profileCache.id === key ? profileCache.data : null;
+  if (!data) {
+    ({ data } = await supabase.from('profiles').select('role,display_name,is_active,must_change_password').eq('id', key).single());
+    profileCache = { id: key, data };
+  }
   const role = data?.role;
-  // 教師不論由哪個入口登入，都統一回到教師客務後台。
-  if (role === 'teacher' && !isTeacherPortal && !isEmbeddedSchedule) {
+  // 教師開啟家長端時不強制導回：兩端共用同一組 session，硬導會讓教師
+  // 永遠無法檢視家長頁面。改為顯示返回教師後台的提示。
+  if (role === 'teacher' && isParentPage) {
+    existing?.remove();
+    document.body.classList.remove('auth-open');
+    showTeacherNotice();
+    appliedKey = key;
+    return;
+  }
+  if (role === 'teacher' && !isTeacherPortal && !isParentPage && !isEmbeddedSchedule) {
     location.replace('teacher.html');
     return;
   }
@@ -110,19 +143,16 @@ async function applySession(session) {
   }
   existing?.remove();
   document.body.classList.remove('auth-open');
+  appliedKey = key;
   // 教師端與家長端為獨立入口；登入後固定留在目前頁面，不顯示跨站捷徑。
 }
 
 supabase.auth.onAuthStateChange((event, session) => {
-  // 新網域首次登入時，頁面主程式可能早於 session 完成而先載入成空白。
-  // 登入成功後只重載一次，確保所有課次、學生與財務查詢都以有效 session 初始化。
-  if (event === 'SIGNED_IN' && isTeacherPortal && !sessionStorage.getItem('bossfu-teacher-session-ready')) {
-    sessionStorage.setItem('bossfu-teacher-session-ready', '1');
-    location.reload();
-    return;
-  }
+  // 不要在這裡呼叫 location.reload()：Supabase 會在分頁取得焦點與更新 token 時
+  // 重複觸發事件，一旦瀏覽器封鎖 sessionStorage，防護就失效而變成無限重載
+  // （畫面正常、按鈕沒反應、裝置發燙）。頁面本身已會在 session 抵達時重新載入資料。
   if (session) { latestSession = session; window.BOSSFU_AUTH_SESSION = session; }
-  if (event === 'SIGNED_OUT') { latestSession = null; sessionStorage.removeItem('bossfu-teacher-session-ready'); }
+  if (event === 'SIGNED_OUT') { latestSession = null; appliedKey = null; profileCache = null; }
   setTimeout(() => applySession(session), 0);
 });
 
