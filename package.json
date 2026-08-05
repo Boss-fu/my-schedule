@@ -3,7 +3,7 @@
   "private": true,
   "description": "福大自然家教管理系統",
   "scripts": {
-    "test": "node test/logic.test.js && node test/boot.test.js && node test/session.test.js && node test/auth.test.js && node test/student-rate.test.js && node test/pages.test.js && node test/interact.test.js && node test/notify.test.js && node test/parent.test.js && node test/preview-race.test.js && node test/preview-parent.test.js"
+    "test": "node test/logic.test.js && node test/boot.test.js && node test/session.test.js && node test/auth.test.js && node test/student-rate.test.js && node test/pages.test.js && node test/interact.test.js && node test/notify.test.js && node test/parent.test.js && node test/preview-race.test.js && node test/preview-parent.test.js && node test/login-flow.test.js"
   },
   "devDependencies": {
     "jsdom": "^26.0.0"
