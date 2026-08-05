@@ -19,15 +19,18 @@ const check = (name, cond, extra = '') => {
   else { fail++; console.log(`  FAIL  ${name}${extra ? '  (' + extra + ')' : ''}`); }
 };
 
-console.log('=== 每個本地 JS/CSS 引用都必須帶版本號 ===');
+console.log('=== 每個本地 JS/CSS 引用、以及每個 iframe 載入的 HTML 都必須帶版本號 ===');
+// href="*.html" is a navigation link (e.g. "回教師後台"), not a resource fetch
+// — it doesn't need cache-busting. src="*.html" is an iframe load, which does.
 const versions = new Set();
-const refRe = /(?:src|href)="((?!https?:|\/\/)[\w./-]+\.(?:js|css))(\?[^"]*)?"/g;
+const refRe = /(?:src="((?!https?:|\/\/)[\w./-]+\.(?:js|css|html))|href="((?!https?:|\/\/)[\w./-]+\.(?:js|css)))(\?[^"]*)?"/g;
 
 for (const page of PAGES) {
   const content = fs.readFileSync(path.join(DIR, page), 'utf8');
   let m;
   while ((m = refRe.exec(content))) {
-    const [, file, query] = m;
+    const file = m[1] || m[2];
+    const query = m[3];
     const hasVersion = !!query && /\bv=/.test(query);
     check(`${page}: ${file}${query || ''} 有版本號`, hasVersion, query || '(無查詢字串)');
     if (hasVersion) versions.add(query.match(/v=([^&]*)/)[1]);

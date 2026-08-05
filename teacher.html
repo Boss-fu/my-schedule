@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>福大自然家教管理系統｜BOSSFU TUTOR SYSTEM</title>
   <link rel="manifest" href="teacher.webmanifest?v=4"><link rel="icon" type="image/png" href="icon-192-v3.png"><link rel="apple-touch-icon" href="icon-192-v3.png"><meta name="theme-color" content="#850103"><meta name="apple-mobile-web-app-capable" content="yes"><meta property="og:image" content="https://boss-fu.github.io/tutoring/icon-512-v3.png"><meta property="og:title" content="福大自然家教管理系統">
-  <link rel="stylesheet" href="theme.css?v=20260805-1">
+  <link rel="stylesheet" href="theme.css?v=20260805-3">
   <style>
     /* ===== 版面骨架：白色頂部 header + 橫向分頁（對齊課務系統） ===== */
     .shell{min-height:100vh;display:flex;flex-direction:column}
@@ -181,11 +181,11 @@
 <section class="view" id="files"><div class="card"><h2>檔案中心</h2><p class="muted">先指定學生，再傳送講義、練習或查看家長回傳的考卷。每次傳送皆會綁定目前選取的學生。</p><div id="teacherFilePage"></div></div></section>
 <section class="view" id="finance"><div class="card"><h2>學費與收入</h2><div class="filters"><label>月份<select id="financeMonth"></select></label><label>學生<select id="financeStudent"></select></label><button class="btn" id="clearFinanceFilter">全部學生</button><button class="btn primary" id="printInvoice">列印學費單</button></div><p class="filters"><button class="btn" data-month="prev">上個月</button><button class="btn primary" data-month="current">本月</button><button class="btn" data-month="next">下個月</button></p><div class="cards" id="financeCards"></div></div><div class="card"><h2>學生月費彙總</h2><p class="muted">依目前月份與學生篩選，統計實到課次的鐘點費用。</p><div id="financeSummary"></div></div><div class="card"><h2>每堂課收費明細</h2><div id="financeTable"></div></div></section>
 <section class="view" id="service"><div class="card"><h2>家長／學生當月學習狀況</h2><div class="filters"><label>月份<select id="serviceMonth"></select></label><label>學生<select id="serviceStudent"></select></label></div><div id="learningReport"></div></div></section>
-<section class="view" id="parentPreview"><div class="card"><h2>家長端預覽（教師專用）</h2><p id="previewWho" class="chip info" hidden style="margin-bottom:10px"></p><p class="muted">此處供教師檢視家長實際看到的資料；預覽沿用目前教師登入，不會再要求輸入帳密。</p><iframe class="schedule-frame" title="家長頁面預覽" src="parent-preview.html?v=20260802-shared-client"></iframe></div></section>
-<section class="view" id="schedule"><iframe class="schedule-frame" title="個人課表" src="index.html?embed=teacher"></iframe></section>
-<section class="view" id="scheduleTools"><iframe class="schedule-frame" title="新增與管理行程" src="index.html?embed=teacher&tools=1&view=manage&v=20260804"></iframe></section>
+<section class="view" id="parentPreview"><div class="card"><h2>家長端預覽（教師專用）</h2><p id="previewWho" class="chip info" hidden style="margin-bottom:10px"></p><p class="muted">此處供教師檢視家長實際看到的資料；預覽沿用目前教師登入，不會再要求輸入帳密。</p><iframe class="schedule-frame" title="家長頁面預覽" src="parent-preview.html?v=20260805-3"></iframe></div></section>
+<section class="view" id="schedule"><iframe class="schedule-frame" title="個人課表" src="index.html?embed=teacher&v=20260805-3"></iframe></section>
+<section class="view" id="scheduleTools"><iframe class="schedule-frame" title="新增與管理行程" src="index.html?embed=teacher&tools=1&view=manage&v=20260805-3"></iframe></section>
 </main></div>
-<script src="vendor/supabase.js?v=20260805-1"></script><script src="boot-check.js?v=20260805-1"></script><script src="supabase-config.js?v=20260805-1"></script><script type="module" src="finance-profile.js?v=20260805-1"></script><script type="module" src="student-rate.js?v=20260805-1"></script><script type="module" src="teacher-preview-labels.js?v=20260805-1"></script><script type="module" src="auth.js?v=20260805-1"></script>
+<script src="vendor/supabase.js?v=20260805-3"></script><script src="boot-check.js?v=20260805-3"></script><script src="supabase-config.js?v=20260805-3"></script><script type="module" src="finance-profile.js?v=20260805-3"></script><script type="module" src="student-rate.js?v=20260805-3"></script><script type="module" src="teacher-preview-labels.js?v=20260805-3"></script><script type="module" src="auth.js?v=20260805-3"></script>
 <script type="module">
 const {createClient}=window.supabase;
 const db=(window.BOSSFU_DB ||= createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey));let students=[],lessons=[],shownMonth=sessionStorage.getItem('bossfu-shown-month')||localMonth(new Date());const $=id=>document.getElementById(id),money=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW'),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -256,7 +256,7 @@ function setMonth(action){const d=action==='current'?new Date():new Date(shownMo
     [150, 600, 1200].forEach(function(ms){ setTimeout(ask, ms); });
   };
 </script>
-<script src="pwa.js?v=20260805-1"></script>
+<script src="pwa.js?v=20260805-3"></script>
 <script type="module">
   const {createClient}=window.supabase;
   const teacherFilesDb=(window.BOSSFU_DB ||= createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey));
@@ -505,43 +505,4 @@ function setMonth(action){const d=action==='current'?new Date():new Date(shownMo
     markAllRead();paintBadge();
   };
   setTimeout(refreshBell,1200);setInterval(refreshBell,30000);
-</script>
-<script>
-  /* 通知中心的每一則內容都可直接進入相對應學生與工作區。 */
-  (function(){
-    function studentIdFor(name){
-      var option=[...document.querySelectorAll('#workStudent option,#fileStudent option,#serviceStudent option')]
-        .find(function(node){return node.textContent.trim()===name;});
-      return option?.value||'';
-    }
-    function selectStudent(id, selector){
-      var select=document.querySelector(selector);
-      if(!select||!id)return;
-      select.value=id;
-      select.dispatchEvent(new Event('change',{bubbles:true}));
-    }
-    function openNotice(event){
-      var item=event.target.closest('#bellItems > div');
-      if(!item)return;
-      var label=item.querySelector('b')?.textContent||'';
-      var studentName=(label.split('｜')[1]||'').trim();
-      var studentId=studentIdFor(studentName);
-      document.getElementById('bellPanel').style.display='none';
-      if(label.includes('段考卷')||label.includes('檔案')){
-        document.querySelector('[data-view="files"]')?.click();
-        setTimeout(function(){selectStudent(studentId,'#fileStudent');},120);
-      }else{
-        document.querySelector('[data-view="parentPreview"]')?.click();
-        setTimeout(function(){
-          var frame=document.querySelector('iframe[title="家長頁面預覽"]');
-          frame?.contentWindow?.postMessage({type:'bossfu-open-parent-communication',studentId:studentId},location.origin);
-        },450);
-      }
-    }
-    function markItems(){document.querySelectorAll('#bellItems > div').forEach(function(item){item.style.cursor='pointer';item.title='點選前往對應內容';});}
-    document.addEventListener('click',openNotice);
-    markItems();
-    var list=document.getElementById('bellItems');
-    if(list&&typeof list.nodeType==='number')new MutationObserver(markItems).observe(list,{childList:true});
-  })();
 </script>

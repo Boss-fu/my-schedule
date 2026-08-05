@@ -1,26 +1,47 @@
 #!/usr/bin/env python3
 """
-Stamps every local script/stylesheet reference across the site with one
-shared, fresh version string, and adds a query string to any reference that
-had none at all.
+Stamps every local script/stylesheet/iframe reference across the site with
+one shared, fresh version string, and adds one to any reference that had
+none at all.
 
 Run this before every deploy. Some files (supabase-config.js, boot-check.js,
-pwa.js, vendor/supabase.js, and index.html's own auth.js tag) previously had
-no version string whatsoever, so a browser or CDN was free to cache them
-indefinitely on whatever Cache-Control the host happens to send. Editing the
-file's contents does nothing to force a refetch if its URL never changes —
-that mismatch is exactly what caused fixed bugs to keep reappearing for
-anyone whose browser still held the old copy.
+pwa.js, vendor/supabase.js, index.html's own auth.js tag, and the
+parent-preview.html / index.html iframe src attributes) previously had no
+version string, or kept a stale one, so a browser or CDN was free to cache
+them well past whatever the host's Cache-Control says. Editing a file's
+contents does nothing to force a refetch if the URL requesting it never
+changes — that mismatch is exactly what let fixed bugs keep reappearing for
+anyone whose browser still held an old copy.
 """
 import re
 import sys
 import time
 
+# src="foo.js"  src="foo.js?old"  href="foo.css?old"
 LOCAL_JS_CSS = re.compile(
     r'((?:src|href)=")((?!https?:|//)[\w./-]+\.(?:js|css))(\?[^"]*)?(")'
 )
 
+# src="foo.html"  src="foo.html?a=b"  src="foo.html?a=b&v=old"
+LOCAL_HTML = re.compile(
+    r'(src="(?!https?:|//)[\w./-]+\.html)(\?[^"]*)?(")'
+)
+
 PAGES = ['index.html', 'teacher.html', 'parent.html', 'parent-preview.html']
+
+def bump_html_query(m, version):
+    prefix, query, quote = m.group(1), m.group(2) or '', m.group(3)
+    if query:
+        query = re.sub(r'\bv=[^&]*', '', query).rstrip('&')
+        query = query.rstrip('?')
+        sep = '&' if query.startswith('?') and len(query) > 1 else ('?' if not query else '&')
+        if query in ('', '?'):
+            new_query = '?v=' + version
+        else:
+            new_query = query + '&v=' + version
+    else:
+        new_query = '?v=' + version
+    return prefix + new_query + quote
 
 def main():
     version = time.strftime('%Y%m%d%H%M%S')
@@ -35,12 +56,18 @@ def main():
         except FileNotFoundError:
             continue
 
-        def repl(m):
+        def repl_js_css(m):
             nonlocal total
             total += 1
             return f'{m.group(1)}{m.group(2)}?v={version}{m.group(4)}'
 
-        new_content = LOCAL_JS_CSS.sub(repl, content)
+        def repl_html(m):
+            nonlocal total
+            total += 1
+            return bump_html_query(m, version)
+
+        new_content = LOCAL_JS_CSS.sub(repl_js_css, content)
+        new_content = LOCAL_HTML.sub(repl_html, new_content)
         if new_content != content:
             with open(name, 'w', encoding='utf-8') as f:
                 f.write(new_content)
