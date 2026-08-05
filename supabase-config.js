@@ -37,7 +37,14 @@ window.SUPABASE_CONFIG = {
   // result here is a refresh feedback loop that pins the CPU and can hang
   // the tab. The embedded frames still need to read the session the parent
   // is already authenticated with, they just must not also try to renew it.
-  var isEmbedded = /\/index\.html$/.test(location.pathname) && /[?&]embed=/.test(location.search);
+  // 被嵌在別頁裡的 iframe 不自己刷新 token，只由最上層頁面負責；否則多個共用同一
+  // storageKey 的 client 會互相搶著刷新，形成 refresh 回饋迴圈把 CPU 跑滿 → 整頁凍住、
+  // 裝置發燙。原本只擋 index.html 的嵌入，漏掉了 parent-preview（它在教師端也用
+  // bossfu-auth-teacher 這把鍵，且原本仍開著自動刷新）；這裡補上「parent-preview 被
+  // 嵌入時（window.parent !== window）」一併擋掉，即為教師端凍住/發燙的根因。
+  var isEmbedded =
+    (/\/index\.html$/.test(location.pathname) && /[?&]embed=/.test(location.search))
+    || (/parent-preview/.test(location.pathname) && window.parent !== window);
 
   // boot-check.js already reports a missing library; don't throw on top of it.
   if (!window.supabase || typeof window.supabase.createClient !== 'function') return;
