@@ -111,6 +111,46 @@ const check = (name, cond, extra='') => {
     check('編輯請假課次時帶出 leave', $('formStatus').value === 'leave', $('formStatus').value);
   } else check('找得到請假課次的修改鈕', false);
 
+  console.log('\n=== 月份切換一次只能移動一個月 ===');
+  // 兩段程式碼曾同時綁在同一顆按鈕上（其中一段跑在 capture 階段），一按就跳兩個月。
+  const monthOf = () => $('calendarTitle').textContent.trim();
+  doc.querySelector('[data-view="lessons"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 80));
+  doc.querySelector('[data-month="current"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 120));
+  const base = monthOf();
+  doc.querySelector('[data-month="next"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 120));
+  const after1 = monthOf();
+  const num = s => { const m = s.match(/(\d{4})\D+(\d{1,2})/); return m ? Number(m[1]) * 12 + Number(m[2]) : NaN; };
+  check('下個月只前進 1 個月', num(after1) - num(base) === 1, `${base} → ${after1}`);
+  doc.querySelector('[data-month="prev"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 120));
+  check('上個月退回原本月份', monthOf() === base, `${after1} → ${monthOf()}，原本 ${base}`);
+  $('nextMonth').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 120));
+  check('月曆上的 → 也只前進 1 個月', num(monthOf()) - num(base) === 1, `${base} → ${monthOf()}`);
+  $('prevMonth').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 120));
+  check('月曆上的 ← 也只後退 1 個月', monthOf() === base, `→ ${monthOf()}`);
+
+  console.log('\n=== 課務列展開／收合 ===');
+  // 若同一列被綁到兩個處理器，toggle 兩次等於沒反應。
+  doc.querySelector('[data-view="coursework"]').dispatchEvent(new win.MouseEvent('click',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 80));
+  $('workStudent').value = 's1';
+  $('workStudent').dispatchEvent(new win.Event('change'));
+  await new Promise(r => setTimeout(r, 120));
+  const cwRow = doc.querySelector('.coursework-row');
+  if (cwRow) {
+    cwRow.dispatchEvent(new win.MouseEvent('click', { bubbles:true }));
+    await new Promise(r => setTimeout(r, 60));
+    check('點一下會展開', cwRow.nextElementSibling.classList.contains('open'));
+    cwRow.dispatchEvent(new win.MouseEvent('click', { bubbles:true }));
+    await new Promise(r => setTimeout(r, 60));
+    check('再點一下會收合', !cwRow.nextElementSibling.classList.contains('open'));
+  } else check('有課務列可測試', false);
+
   console.log('\n=== 刪除課次 ===');
   cta.dispatchEvent(new win.MouseEvent('click', { bubbles:true }));   // 回到新增模式
   await new Promise(r => setTimeout(r, 80));

@@ -436,7 +436,9 @@ function setMonth(action){const d=action==='current'?new Date():new Date(shownMo
     document.addEventListener('click',function(event){
       var button=event.target.closest('[data-month],#prevMonth,#nextMonth');
       if(!button)return;
-      if(typeof window.BossfuSetMonth==='function'){window.BossfuSetMonth(button.dataset.month||(button.id==='prevMonth'?'prev':'next'));return;}
+      // 主模組就緒後由它自己的 onclick 處理。這裡跑在 capture 階段，
+      // 若也呼叫一次 BossfuSetMonth，兩者相加會讓月份一次跳兩格。
+      if(typeof window.BossfuSetMonth==='function')return;
       var action=button.dataset.month||(button.id==='prevMonth'?'prev':'next');
       var date=action==='current'?new Date():new Date(monthFromPage()+'-01T12:00:00');
       if(action==='prev')date.setMonth(date.getMonth()-1);
