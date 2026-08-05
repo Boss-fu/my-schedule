@@ -57,7 +57,8 @@ const check = (name, cond, extra='') => {
   let src = fs.readFileSync(path.join(DIR, 'teacher.html'), 'utf8');
   src = src.replace(/<script type="module"([^>]*)>([\s\S]*?)<\/script>/g, (m, attrs, body) => {
     if (/\bsrc=/.test(attrs)) return '';
-    return '<script>' + body.replace(/import\s*\{[^}]*\}\s*from\s*['"][^'"]*['"]\s*;/g,'') + '</script>';
+    // module scripts each have their own scope; keep that when downgrading them
+    return '<scr' + 'ipt>(async()=>{' + body + '})();</scr' + 'ipt>';
   });
   src = src.replace(/<script type="module" src="[^"]*"><\/script>/g, '');
 
@@ -65,7 +66,7 @@ const check = (name, cond, extra='') => {
     url:'https://example.test/teacher.html', virtualConsole: vc,
     beforeParse(win){
       win.SUPABASE_CONFIG={url:'https://x.supabase.co',publishableKey:'k'};
-      win.BOSSFU_DB=client(); win.createClient=client;
+      win.supabase={createClient:client}; win.BOSSFU_DB=client();
       win.alert=m=>errors.push('alert(): '+m); win.confirm=()=>true; win.print=()=>{};
       win.scrollTo=()=>{};
       Object.defineProperty(win.HTMLElement.prototype,'scrollIntoView',{value(){},writable:true});

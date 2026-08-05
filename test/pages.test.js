@@ -75,14 +75,11 @@ async function run(file) {
   vc.on('error', (...a) => errors.push('console.error: ' + a.join(' ')));
 
   let src = fs.readFileSync(path.join(DIR, file), 'utf8');
-  // jsdom can't run ESM <script type="module">; convert to classic scripts with
-  // the import lines stripped so the page logic still executes.
+  // jsdom can't run ESM <script type="module">; downgrade them to classic
+  // scripts, wrapping each so it keeps the module scope it has in a browser.
   src = src.replace(/<script type="module"([^>]*)>([\s\S]*?)<\/script>/g, (m, attrs, body) => {
     if (/\bsrc=/.test(attrs)) return '';                 // external module: skip
-    // imports may share a line with other statements, so strip them anywhere
-    const stripped = body.replace(/import\s*\{[^}]*\}\s*from\s*['"][^'"]*['"]\s*;/g, '')
-                         .replace(/import\s+[\w*\s,{}]*\s+from\s*['"][^'"]*['"]\s*;/g, '');
-    return '<script>' + stripped + '</script>';
+    return '<scr' + 'ipt>(async()=>{' + body + '})();</scr' + 'ipt>';
   });
   src = src.replace(/<script type="module" src="[^"]*"><\/script>/g, '');
 
@@ -93,8 +90,8 @@ async function run(file) {
     virtualConsole: vc,
     beforeParse(win) {
       win.SUPABASE_CONFIG = { url: 'https://x.supabase.co', publishableKey: 'k' };
+      win.supabase = { createClient: makeClient };
       win.BOSSFU_DB = makeClient();
-      win.createClient = makeClient;
       win.alert = (m) => errors.push('alert(): ' + m);
       win.confirm = () => true;
       win.print = () => {};

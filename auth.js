@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const {createClient}=window.supabase;
 
 const config = window.SUPABASE_CONFIG;
 const supabase = (window.BOSSFU_DB ||= createClient(config.url, config.publishableKey));
