@@ -102,6 +102,7 @@ const check = (name, cond, extra='') => {
   check('出席狀態預設為實到', $('formStatus').value === 'attended', $('formStatus').value);
   check('日期預設為今天(本地)', /^\d{4}-\d{2}-\d{2}$/.test($('formDate').value), $('formDate').value);
   check('學生下拉已填入', $('formStudent').options.length === 2, `${$('formStudent').options.length} 筆`);
+  check('時薪以 50 元為級距', $('formRate').step === '50', `step=${$('formRate').step}`);
 
   // open an existing lesson that is 請假 -> status must round-trip
   const editBtn = doc.querySelector('[data-id="l2"]');
