@@ -15,8 +15,11 @@ async function applyPaymentInfo() {
     const node = document.querySelector('#invoicePreview .invoice > p.muted');
     if (!node) return;
     const teacherInfo = [profile.teacher, profile.contact].filter(Boolean).join('\n') || '福大自然（張家福）';
-    node.textContent = '老師資訊\n' + teacherInfo + '\n\n付款資訊\n' + (profile.payment || '請洽教師。');
-    node.style.whiteSpace = 'pre-line';
+    const desired = '老師資訊\n' + teacherInfo + '\n\n付款資訊\n' + (profile.payment || '請洽教師。');
+    // 只在文字真的不同時才寫入：textContent 每次賦值都算一次 childList 變動，會再度
+    // 觸發本身監看 #invoicePreview subtree 的 MutationObserver → 無限自我觸發 → 當機。
+    if (node.textContent !== desired) node.textContent = desired;
+    if (node.style.whiteSpace !== 'pre-line') node.style.whiteSpace = 'pre-line';
   };
   paint();
   const preview = document.getElementById('invoicePreview');

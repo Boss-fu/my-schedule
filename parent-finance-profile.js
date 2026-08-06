@@ -23,8 +23,10 @@ async function applyPayment() {
     const node = preview.querySelector('.invoice > p.muted');
     if (!node) return;
     const teacherInfo = [profile.teacher, profile.contact].filter(Boolean).join('\n') || '福大自然（張家福）';
-    node.textContent = '老師資訊\n' + teacherInfo + '\n\n付款資訊\n' + (profile.payment || '請洽教師。');
-    node.style.whiteSpace = 'pre-line';
+    const desired = '老師資訊\n' + teacherInfo + '\n\n付款資訊\n' + (profile.payment || '請洽教師。');
+    // 只在文字真的不同時才寫入，否則會不斷自我觸發 observer 造成當機。
+    if (node.textContent !== desired) node.textContent = desired;
+    if (node.style.whiteSpace !== 'pre-line') node.style.whiteSpace = 'pre-line';
   };
   paint();
   new MutationObserver(paint).observe(preview, { childList: true, subtree: true });
