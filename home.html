@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>福大自然家教｜選擇入口</title>
+  <link rel="icon" type="image/png" href="icon-192-v3.png">
+  <link rel="apple-touch-icon" href="icon-192-v3.png">
+  <meta name="theme-color" content="#850103">
+  <meta property="og:title" content="福大自然家教｜選擇入口">
+  <meta property="og:image" content="https://boss-fu.github.io/tutoring/icon-512-v3.png">
+  <style>
+    /* 自包含樣式：對齊 theme.css 的品牌色與字體，但不外部載入任何資源，
+       以免踩到全站版本號一致性測試。 */
+    :root{
+      --tzu-red:#850103; --tzu-red-hover:#6a0002; --tzu-orange:#f9a12c;
+      --page:#fafaf9; --surface:#ffffff; --line:#e2e8f0; --line-strong:#cbd5e1;
+      --text:#1e293b; --text-2:#475569; --muted:#64748b; --muted-2:#94a3b8;
+      --font:"PingFang TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;
+      --shadow-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -2px rgba(0,0,0,.05);
+      --shadow-lg:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -4px rgba(0,0,0,.05);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:var(--font);color:var(--text);
+      background:
+        radial-gradient(1100px 520px at 50% -160px, #fff 0%, rgba(255,255,255,0) 70%),
+        linear-gradient(180deg,#f4f2ee 0%, var(--page) 42%);
+      -webkit-font-smoothing:antialiased;
+      display:flex;align-items:center;justify-content:center;padding:28px 20px}
+
+    .wrap{width:100%;max-width:560px}
+
+    /* 品牌區 */
+    .head{text-align:center;margin-bottom:26px}
+    .logo{width:66px;height:66px;border-radius:16px;object-fit:contain;
+      box-shadow:var(--shadow-md);background:#fff}
+    .eyebrow{margin-top:14px;font-size:11px;font-weight:800;letter-spacing:.22em;
+      text-transform:uppercase;color:var(--muted-2)}
+    .title{margin:5px 0 0;font-size:26px;font-weight:900;letter-spacing:-.02em}
+    .subtitle{margin:8px 0 0;font-size:14px;color:var(--muted)}
+
+    /* 選擇卡 */
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+    .tile{position:relative;display:flex;flex-direction:column;gap:12px;
+      background:var(--surface);border:1px solid var(--line);border-radius:18px;
+      padding:22px 20px;text-decoration:none;color:inherit;
+      box-shadow:var(--shadow-md);transition:transform .14s,box-shadow .14s,border-color .14s}
+    .tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--line-strong)}
+    .tile:active{transform:translateY(-1px)}
+    .tile:focus-visible{outline:2px solid var(--tzu-red);outline-offset:3px}
+    .ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+    .ico svg{width:28px;height:28px}
+    .tile-teacher .ico{background:rgba(133,1,3,.08);color:var(--tzu-red)}
+    .tile-parent  .ico{background:rgba(249,161,44,.16);color:#b45309}
+    .tile h2{margin:0;font-size:18px;font-weight:900;letter-spacing:-.01em}
+    .tile p{margin:2px 0 0;font-size:12.5px;line-height:1.5;color:var(--muted)}
+    .go{margin-top:auto;display:inline-flex;align-items:center;gap:6px;
+      font-size:13px;font-weight:800;color:var(--text-2)}
+    .tile-teacher .go{color:var(--tzu-red)}
+    .go svg{width:15px;height:15px}
+    .tile:hover .go{gap:9px}
+
+    .foot{margin-top:22px;text-align:center;font-size:11.5px;color:var(--muted-2)}
+
+    @media (max-width:440px){
+      .grid{grid-template-columns:1fr}
+      .title{font-size:23px}
+      .tile{flex-direction:row;align-items:center;gap:16px;padding:18px}
+      .tile .txt{flex:1;min-width:0}
+      .tile .go{margin:0}
+    }
+    @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="head">
+      <img class="logo" src="icon-192-v3.png" alt="福大自然家教">
+      <div class="eyebrow">BOSSFU TUTOR SYSTEM</div>
+      <h1 class="title">福大自然家教</h1>
+      <p class="subtitle">請選擇進入身分</p>
+    </div>
+
+    <nav class="grid">
+      <a class="tile tile-teacher" href="/teacher" aria-label="教師端入口">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
+          </svg>
+        </span>
+        <div class="txt">
+          <h2>教師</h2>
+          <p>課表、課次、學費與家長預覽管理</p>
+        </div>
+        <span class="go">進入教師端
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+        </span>
+      </a>
+
+      <a class="tile tile-parent" href="/parent" aria-label="學生與家長端入口">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="8" r="3"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.2"/><path d="M15.5 15.4A5 5 0 0 1 21.5 20"/>
+          </svg>
+        </span>
+        <div class="txt">
+          <h2>學生・家長</h2>
+          <p>查看課程紀錄、進度與學費單</p>
+        </div>
+        <span class="go">進入家長端
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+        </span>
+      </a>
+    </nav>
+
+    <p class="foot">© 福大自然家教 BOSSFU TUTOR SYSTEM</p>
+  </main>
+</body>
+</html>
