@@ -1,7 +1,54 @@
+const VAPID_PUBLIC = 'BO6FbyL6xjvU1dOXMR-FftzzjhurqId_HlXilPujisFNLxjgJMN64dFlj8d5hJHA-B2pJNPL4Ye6FQhDJIB28Zg';
+
+function urlB64ToUint8(base64) {
+  const pad = '='.repeat((4 - base64.length % 4) % 4);
+  const b64 = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+// 把這台裝置的推播訂閱存進 push_subscriptions（需先在 Supabase 建表）。
+async function subscribePush() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const db = window.BOSSFU_DB;
+    if (!db) return;
+    const { data: { session } } = await db.auth.getSession();
+    if (!session?.user) return;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_PUBLIC) });
+    const k = sub.toJSON().keys || {};
+    await db.from('push_subscriptions').upsert(
+      { user_id: session.user.id, endpoint: sub.endpoint, p256dh: k.p256dh, auth: k.auth },
+      { onConflict: 'endpoint' },
+    );
+  } catch (_) {}
+}
+
+// 事件發生時觸發推播（容錯：Edge Function／資料表尚未部署時安靜略過，不影響原功能）。
+window.bossfuPush = async function (targetUserIds, title, body, url) {
+  try {
+    const db = window.BOSSFU_DB;
+    if (!db || !targetUserIds || !targetUserIds.length) return;
+    await db.functions.invoke('send-push', { body: { target_user_ids: targetUserIds, title, body, url } });
+  } catch (_) {}
+};
+window.bossfuPushRole = async function (role, title, body, url) {
+  try {
+    const db = window.BOSSFU_DB;
+    if (!db) return;
+    await db.functions.invoke('send-push', { body: { target_role: role, title, body, url } });
+  } catch (_) {}
+};
+
 (() => {
   const isStandalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  navigator.serviceWorker.register('./sw.js')
+    .then(() => { if ('Notification' in window && Notification.permission === 'granted') subscribePush(); })
+    .catch(() => {});
   if (!isStandalone || !('Notification' in window) || Notification.permission !== 'default') return;
   if (localStorage.getItem('bossfu-notification-prompted')) return;
 
@@ -17,7 +64,10 @@
       const permission = await Notification.requestPermission();
       localStorage.setItem('bossfu-notification-prompted', permission);
       prompt.remove();
-      if (permission === 'granted') new Notification('福大自然家教通知已開啟', { body: '之後的新訊息與檔案會在此通知。' });
+      if (permission === 'granted') {
+        new Notification('福大自然家教通知已開啟', { body: '之後的新訊息與檔案會在此通知。' });
+        subscribePush();
+      }
     };
   };
   setTimeout(ask, 700);
