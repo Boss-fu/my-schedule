@@ -76,6 +76,10 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:var(
   padding:9px 11px;font:inherit;font-size:14px;background:var(--surface);color:var(--text);min-height:38px}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--tzu-red);
   box-shadow:0 0 0 3px rgba(133,1,3,.12)}
+/* 勾選框／單選鈕不套用上面的通用輸入框樣式，否則會被撐成大方塊、擠壞版面 */
+input[type=checkbox],input[type=radio]{width:auto;min-height:0;padding:0;border-radius:0;
+  box-shadow:none;accent-color:var(--tzu-red);cursor:pointer}
+input[type=checkbox]:focus,input[type=radio]:focus{box-shadow:none}
 textarea{min-height:76px;resize:vertical;line-height:1.6}
 select{appearance:none;padding-right:32px;cursor:pointer;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2394a3b8' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
