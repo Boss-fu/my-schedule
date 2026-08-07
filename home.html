@@ -7,6 +7,11 @@
   <link rel="icon" type="image/png" href="icon-192-v3.png">
   <link rel="apple-touch-icon" href="icon-192-v3.png">
   <meta name="theme-color" content="#850103">
+  <link rel="manifest" href="home.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="福大自然">
   <meta property="og:title" content="福大自然家教｜選擇入口">
   <meta property="og:image" content="https://boss-fu.github.io/tutoring/icon-512-v3.png">
   <style>
@@ -116,5 +121,22 @@
 
     <p class="foot">© 福大自然家教 BOSSFU TUTOR SYSTEM</p>
   </main>
+  <script>
+  /* 已加到主畫面的 PWA（iOS standalone / Android）：攔截選擇頁的內部連結，
+     改用 location 導頁，避免點「教師 / 家長」時跳出 App 變成瀏覽器網頁。 */
+  (function(){
+    var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches)
+      || navigator.standalone === true;
+    if(!standalone) return;
+    document.addEventListener('click', function(e){
+      var a = e.target && e.target.closest && e.target.closest('a[href]');
+      if(!a) return;
+      var href = a.getAttribute('href');
+      if(!href || /^(https?:)?\/\//i.test(href) || href.charAt(0) === '#') return;
+      e.preventDefault();
+      window.location.href = href;
+    });
+  })();
+  </script>
 </body>
 </html>
