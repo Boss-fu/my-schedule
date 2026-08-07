@@ -19,7 +19,9 @@ const LESSONS = [
 ];
 const SESSION = { access_token: 'x', refresh_token: 'y', user: { id: 'u1' } };
 
-const rows = n => n === 'students' ? STUDENTS : n === 'lessons' ? LESSONS : [];
+const rows = n => n === 'students' ? STUDENTS : n === 'lessons' ? LESSONS
+  : n === 'issued_invoices' ? [...new Set(LESSONS.map(l => l.lesson_date.slice(0, 7)))].map(m => ({ month: m }))
+  : [];
 const q = n => { const o = {
   select: () => o, order: () => o, eq: () => o, in: () => o, limit: () => o,
   insert: () => Promise.resolve({ data: null, error: null }), update: () => o, delete: () => o,
