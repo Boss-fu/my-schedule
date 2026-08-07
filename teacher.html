@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>福大自然家教管理系統｜BOSSFU TUTOR SYSTEM</title>
   <link rel="manifest" href="teacher.webmanifest?v=4"><link rel="icon" type="image/png" href="icon-192-v3.png"><link rel="apple-touch-icon" href="icon-192-v3.png"><meta name="theme-color" content="#850103"><meta name="apple-mobile-web-app-capable" content="yes"><meta property="og:image" content="https://boss-fu.github.io/tutoring/icon-512-v3.png"><meta property="og:title" content="福大自然家教管理系統">
-  <link rel="stylesheet" href="theme.css?v=20260807161058">
+  <link rel="stylesheet" href="theme.css?v=20260807161525">
   <style>
     /* ===== 版面骨架：白色頂部 header + 橫向分頁（對齊課務系統） ===== */
     .shell{min-height:100vh;display:flex;flex-direction:column}
@@ -211,16 +211,16 @@
 <section class="view" id="files"><div class="card"><h2>檔案中心</h2><p class="muted">先指定學生，再傳送講義、練習或查看家長回傳的考卷。每次傳送皆會綁定目前選取的學生。</p><div id="teacherFilePage"></div></div></section>
 <section class="view" id="finance"><div class="card"><h2>學費與收入</h2><div class="filters"><label>月份<select id="financeMonth"></select></label><label>學生<select id="financeStudent"></select></label><button class="btn" id="clearFinanceFilter">全部學生</button><button class="btn primary" id="printInvoice">列印學費單</button></div><p class="filters"><button class="btn" data-month="prev">上個月</button><button class="btn primary" data-month="current">本月</button><button class="btn" data-month="next">下個月</button></p><div class="cards" id="financeCards"></div></div><div class="card"><h2>學生月費彙總</h2><p class="muted">依目前月份與學生篩選，統計實到課次的鐘點費用。</p><div id="financeSummary"></div></div><div class="card"><h2>每堂課收費明細</h2><div id="financeTable"></div></div></section>
 <section class="view" id="service"><div class="card"><h2>家長／學生當月學習狀況</h2><div class="filters"><label>月份<select id="serviceMonth"></select></label><label>學生<select id="serviceStudent"></select></label></div><div id="learningReport"></div></div></section>
-<section class="view" id="parentPreview"><div class="card"><h2>家長端預覽（教師專用）</h2><p id="previewWho" class="chip info" hidden style="margin-bottom:10px"></p><p class="muted">此處供教師檢視家長實際看到的資料；預覽沿用目前教師登入，不會再要求輸入帳密。</p><iframe class="schedule-frame" title="家長頁面預覽" src="parent-preview.html?v=20260807161058"></iframe></div></section>
-<section class="view" id="schedule"><iframe class="schedule-frame" title="個人課表" src="index.html?embed=teacher&v=20260807161058"></iframe></section>
-<section class="view" id="scheduleTools"><iframe class="schedule-frame" title="新增與管理行程" src="index.html?embed=teacher&tools=1&view=manage&v=20260807161058"></iframe></section>
+<section class="view" id="parentPreview"><div class="card"><h2>家長端預覽（教師專用）</h2><p id="previewWho" class="chip info" hidden style="margin-bottom:10px"></p><p class="muted">此處供教師檢視家長實際看到的資料；預覽沿用目前教師登入，不會再要求輸入帳密。</p><iframe class="schedule-frame" title="家長頁面預覽" src="parent-preview.html?v=20260807161525"></iframe></div></section>
+<section class="view" id="schedule"><iframe class="schedule-frame" title="個人課表" src="index.html?embed=teacher&v=20260807161525"></iframe></section>
+<section class="view" id="scheduleTools"><iframe class="schedule-frame" title="新增與管理行程" src="index.html?embed=teacher&tools=1&view=manage&v=20260807161525"></iframe></section>
 <section class="view" id="payroll">
 <div class="card no-print"><h2>補習班／兼職單位</h2><p class="muted">先建立你兼職的補習班，設定預設時薪，之後新增班次會自動帶入。</p><form id="employerForm" class="formgrid"><label>單位名稱<input id="employerName" placeholder="例如：諾貝爾補習班" required></label><label>預設時薪<input id="employerRate" type="number" min="0" step="50" placeholder="例如：600"></label><button class="btn primary" type="submit">新增單位</button></form><div id="employerList" style="margin-top:12px"></div></div>
 <div class="card no-print"><h2>新增兼職班次</h2><form id="shiftForm" class="formgrid"><label>單位<select id="shiftEmployer" required></select></label><label>日期<input id="shiftDate" type="date" required></label><label>開始<input id="shiftStart" type="time"></label><label>結束<input id="shiftEnd" type="time"></label><label>時數<input id="shiftHours" type="number" min="0" step=".5" required></label><label>時薪<input id="shiftRate" type="number" min="0" step="50" required></label><label>備註<input id="shiftNote" placeholder="選填"></label><button class="btn primary" type="submit">新增班次</button></form><div id="shiftList" style="margin-top:12px"></div></div>
 <div class="card"><div class="filters no-print"><label>單位<select id="statementEmployer"></select></label><label>月份<select id="statementMonth"></select></label><button class="btn primary" id="printStatement">列印／存 PDF</button></div><div id="statementOutput"></div></div>
 </section>
 </main></div>
-<script src="vendor/supabase.js?v=20260807161058"></script><script src="boot-check.js?v=20260807161058"></script><script src="supabase-config.js?v=20260807161058"></script><script type="module" src="finance-profile.js?v=20260807161058"></script><script type="module" src="student-rate.js?v=20260807161058"></script><script type="module" src="teacher-preview-labels.js?v=20260807161058"></script><script type="module" src="auth.js?v=20260807161058"></script>
+<script src="vendor/supabase.js?v=20260807161525"></script><script src="boot-check.js?v=20260807161525"></script><script src="supabase-config.js?v=20260807161525"></script><script type="module" src="finance-profile.js?v=20260807161525"></script><script type="module" src="student-rate.js?v=20260807161525"></script><script type="module" src="teacher-preview-labels.js?v=20260807161525"></script><script type="module" src="auth.js?v=20260807161525"></script>
 <script type="module">
 const {createClient}=window.supabase;
 const db=(window.BOSSFU_DB ||= createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey));let students=[],lessons=[],shownMonth=sessionStorage.getItem('bossfu-shown-month')||localMonth(new Date());const $=id=>document.getElementById(id),money=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW'),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -292,7 +292,7 @@ function setMonth(action){const d=action==='current'?new Date():new Date(shownMo
     [150, 600, 1200].forEach(function(ms){ setTimeout(ask, ms); });
   };
 </script>
-<script src="pwa.js?v=20260807161058"></script>
+<script src="pwa.js?v=20260807161525"></script>
 <script type="module">
   const {createClient}=window.supabase;
   const teacherFilesDb=(window.BOSSFU_DB ||= createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey));
@@ -600,7 +600,7 @@ const issueTimer=setInterval(()=>{if(document.querySelector('#finance .filters')
 /* F｜兼職班次與薪資對帳單。需先在 Supabase 建 employers / work_shifts 表。 */
 const wdb=(window.BOSSFU_DB||=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey));
 const wq=id=>document.getElementById(id),wmoney=n=>'NT$ '+Number(n||0).toLocaleString('zh-TW'),wesc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let wEmployers=[],wShifts=[],wTeacher='福大自然（張家福）';
+let wEmployers=[],wShifts=[],wTeacher='張家福';
 function wMonth(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 async function wLoad(){
   const [{data:e},{data:s}]=await Promise.all([wdb.from('employers').select('*').order('name'),wdb.from('work_shifts').select('*,employers(name)').order('work_date',{ascending:false})]);
@@ -632,6 +632,5 @@ wq('shiftForm').onsubmit=async e=>{e.preventDefault();const payload={employer_id
 wq('statementEmployer').onchange=wRenderStatement;wq('statementMonth').onchange=wRenderStatement;
 wq('printStatement').onclick=()=>window.print();
 document.addEventListener('click',async e=>{const de=e.target.dataset.delEmployer,ds=e.target.dataset.delShift;if(de){if(!confirm('刪除此單位會一併刪除其所有班次，確定？'))return;const {error}=await wdb.from('employers').delete().eq('id',de);if(!error)await wLoad()}if(ds){if(!confirm('刪除此班次？'))return;const {error}=await wdb.from('work_shifts').delete().eq('id',ds);if(!error)await wLoad()}});
-(async()=>{try{const {data}=await wdb.from('site_settings').select('value').eq('key','finance_profile').maybeSingle();if(data?.value?.teacher)wTeacher=data.value.teacher}catch(_){}})();
 wLoad();
 </script>
