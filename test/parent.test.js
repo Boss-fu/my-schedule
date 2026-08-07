@@ -28,7 +28,9 @@ const LESSONS = [
 ];
 const SESSION = { access_token: 'x', refresh_token: 'y', user: { id: 'u1' } };
 
-const data = n => n === 'students' ? STUDENTS : n === 'lessons' ? LESSONS : [];
+const data = n => n === 'students' ? STUDENTS : n === 'lessons' ? LESSONS
+  : n === 'issued_invoices' ? [...new Set(LESSONS.map(l => l.lesson_date.slice(0, 7)))].map(m => ({ month: m }))
+  : [];
 const q = n => { const o = {
   select: () => o, order: () => o, eq: () => o, in: () => o, limit: () => o,
   insert: () => Promise.resolve({ data: null, error: null }), update: () => o, delete: () => o,
@@ -85,6 +87,7 @@ const check = (name, cond, extra='') => {
   check('不得出現含請假的 7,200', !invoice.includes('7,200'));
   check('不得出現含一筆請假的 4,800', !invoice.includes('4,800'));
   check('標示為實到課堂數', invoice.includes('實到課堂數'));
+  check('未開立的月份顯示「老師尚未開立」', $('invoiceChoices').textContent.includes('老師尚未開立'));
 
   console.log('\n=== 家長端課務表 ===');
   const cw = $('courseworkList').textContent;
