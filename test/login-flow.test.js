@@ -19,6 +19,7 @@ const q = () => { const o = {
   select: () => o, order: () => o, eq: () => o, in: () => o, limit: () => o,
   insert: () => Promise.resolve({ data: null, error: null }), update: () => o, delete: () => o,
   single: () => Promise.resolve({ data: { role: 'teacher', display_name: 'T', is_active: true, must_change_password: false }, error: null }),
+  maybeSingle: () => Promise.resolve({ data: null, error: null }),
   then: r => Promise.resolve({ data: [], error: null }).then(r) }; return o; };
 
 let pass = 0, fail = 0;

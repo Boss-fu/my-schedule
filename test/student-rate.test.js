@@ -17,8 +17,9 @@ const check = (name, cond, extra = '') => {
 };
 
 const q = () => { const o = {
-  select: () => o, eq: () => o,
+  select: () => o, eq: () => o, order: () => o,
   single: () => Promise.resolve({ data: { default_rate: 1200 }, error: null }),
+  maybeSingle: () => Promise.resolve({ data: null, error: null }),
   update: () => o, insert: () => Promise.resolve({ error: null }),
   then: r => Promise.resolve({ data: [], error: null }).then(r) }; return o; };
 

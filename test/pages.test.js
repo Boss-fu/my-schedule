@@ -36,6 +36,7 @@ function makeQuery(name) {
     insert: () => Promise.resolve({ data: null, error: null }),
     update: () => q, delete: () => q,
     single: () => Promise.resolve({ data: { role: 'teacher', display_name: 'T', is_active: true, must_change_password: false }, error: null }),
+    maybeSingle: () => Promise.resolve({ data: tableData(name)[0] || null, error: null }),
     then: (res) => Promise.resolve({ data: tableData(name), error: null }).then(res),
   };
   return q;
