@@ -23,9 +23,12 @@
 - 家長隱私隔離：所有 `messages`/`student_files` 寫入都帶 `parent_id`；教師傳檔前選「指定家長」(`#fileParent` / `populateParents`)；教師預覽送訊息帶 `parentId`（`BossfuPreviewParent` → postMessage → `window.__bossfuPreviewParentId`）；教師端「清空未指定家長的舊資料」= `#purgeLegacy`。
 - 教師檔案中心：`addTeacherFileCenter` / `#fileStudent`（學生清單從 `#workStudent` 複製，會重試填充）。
 - 教師通知鈴鐺：`refreshBell`；家長通知：`startParentBell` / `enableTabNotices`。
-- 兼職薪資（教師 `data-view="payroll"`）：`wLoad` / `wRender` / `wRenderStatement`（對帳單：應領薪資 − 勞保自付 − 健保自付 = 實領＋核章欄）。資料表 `employers`(含 `default_rate`/`labor_insurance`/`health_insurance`)、`work_shifts`。
-- 收入分析（教師 `data-view="incomeStats"`）：`renderIncomeStats`（家教＋兼職＋正職三來源圖表；helper `shiftFee`=兼職毛額、`salaryFee`=正職實領）。首頁/學費頁/趨勢圖都已納入三來源。
-- 正職薪資單分析（教師 `incomeStats` 分頁尾端獨立 module）：上傳薪資單 PDF → 用使用者自己的 Gemini API（`generativelanguage.googleapis.com/.../{model}:generateContent`，`inline_data` 傳 base64 PDF）判讀「實領」→ regex `實領=數字` 自動填 `#salaryAmount` →「存本月正職收入」寫進 `site_settings` key `salary_income`（JSON `{月份:金額}`，`onConflict:'key'`）。金鑰/模型只存 localStorage（`bossfu-gemini-key`/`bossfu-gemini-model`，預設 `gemini-2.5-flash`）。月份取自 `window.BOSSFU_SHOWN_MONTH()`；存完呼叫 `window.BOSSFU_RELOAD()`。主模組 `salaryMap`＋`salaryFee` 讀此值。
+- **分頁整併（重要）**：教師端已無獨立「兼職薪資」「收入分析」分頁。導覽只剩 首頁／課次與月曆／學生課務／檔案中心／學費與收入／學習狀況／家長端預覽／個人課表／新增·管理行程。
+  - **首頁（`#home` / `renderHome`）＝收入儀表板**（沿用淺色風格，樣式在 teacher.html `<style>`「首頁：收入儀表板」段，class 前綴 `.dash`/`.dp`/`.dnut`/`.rank`/`.dbars`/`.mcal`）。元件：月份 chips（`#dashMonths`，點選 `.mchip[data-m]` 切月，delegation 綁在主模組）＋紅色漸層「本月總收入」卡（`#dashTotBig`/`#dashTotBrk`/`#dashTotYtd`）＋收入來源占比甜甜圈（`#srcDonut`/`#srcLegend`，conic-gradient）＋收入排行（`#incomeRank`，學生家教＋補習班兼職＋正職合併排序 top6）＋近12月堆疊柱（`#trendBars`）＋本月課表迷你月曆（`#miniCal`，有課的日子填紅漸層）＋本月每日收入（`#dailyBars`）＋今天課程（`#todayLessons`）。配色沿用品牌：家教 `#850103`、兼職 `#af9a6b`、正職 `#4c9d86`。舊的 `#dashboard`/`#studentDonut`/`#incomeChart`/`#incomeSplit`/`#incomeByEmployer` 已移除，`renderIncomeStats` 只剩填學費頁的 `#incomeStatMetrics`（其餘 `if($())` 防呆空跑）。（`#incomeTrend` 近12月堆疊、`#studentDonut` 學生占比、`#incomeSplit` 收入結構、`#incomeByEmployer` 各補習班兼職）。原「近六個月收入」`#incomeChart` 已移除，改由 12 個月趨勢取代。
+  - **學費與收入（`#finance` / `renderFinance`）**：家教學費彙總 + 併入兼職（`#employerForm`/`#shiftForm`/薪資對帳單 `#statementEmployer`·`#statementMonth`·`#printStatement`）與正職薪資（Gemini 卡片）與 `#incomeStatMetrics`。
+- 兼職薪資：`wLoad` / `wRender` / `wRenderStatement`（對帳單：應領薪資 − 勞保自付 − 健保自付 = 實領＋核章欄）。資料表 `employers`(含 `default_rate`/`labor_insurance`/`health_insurance`)、`work_shifts`。UI 卡片現位於學費與收入分頁。
+- 收入分析：`renderIncomeStats`（家教＋兼職＋正職三來源；helper `shiftFee`=兼職毛額、`salaryFee`=正職實領）。填的元素散在首頁（趨勢/占比/結構/各補習班）與學費頁（`#incomeStatMetrics`），全部以 `if($(...))` 防呆。
+- 正職薪資單分析（Gemini，UI 在學費與收入分頁，程式為 teacher.html 尾端獨立 module）：上傳薪資單 PDF → 用使用者自己的 Gemini API（`generativelanguage.googleapis.com/.../{model}:generateContent`，`inline_data` 傳 base64 PDF）判讀「實領」→ regex `實領=數字` 自動填 `#salaryAmount` →「存本月正職收入」寫進 `site_settings` key `salary_income`（JSON `{月份:金額}`，`onConflict:'key'`）。金鑰/模型只存 localStorage（`bossfu-gemini-key`/`bossfu-gemini-model`，預設 `gemini-2.5-flash`）。月份取自 `window.BOSSFU_SHOWN_MONTH()`；存完呼叫 `window.BOSSFU_RELOAD()`。主模組 `salaryMap`＋`salaryFee` 讀此值。
 - 月曆拖曳／複製：teacher.html 尾端模組 `mMove`(搬移) / `mCopy`(複製)；月曆格帶 `data-date`、課次事件 `draggable`；主模組重載入口 `window.BOSSFU_RELOAD`（兼職/拖曳更動後連動刷新）。
 - 推播通知：`pwa.js` 的 `subscribePush` / `window.bossfuPush(ids,…)` / `bossfuPushRole('teacher',…)`；Edge Function `supabase/functions/send-push`（用 VAPID 密鑰）；`sw.js` 的 push/notificationclick。觸發點：開立學費單、老師傳檔/回饋、家長回饋。
 
@@ -42,9 +45,10 @@
 
 ## 已完成的大功能（歷史）
 - F 兼職薪資＋可蓋章薪資對帳單、勞健保自付額扣除、收入分析、月曆拖曳/複製課次、家長隱私隔離、學費單開立、推播通知（`send-push` 已部署、VAPID 密鑰已設）皆已上線。
+- 正職收入（Gemini 讀薪資單）已上線；分頁整併：收入分析移入首頁、兼職＋正職併入「學費與收入」、首頁加「今天課程」，刪除獨立的兼職薪資／收入分析分頁。
 
 ## 慣例：更新此檔
 - **每次新增功能或結構性改動，都要同步更新本 `CLAUDE.md`**（錨點／資料表／待辦），隨 PR 一起合併。
 
 ## 待辦（未完成）
-- **正職收入**：使用者的 HR 系統（tzutzu-hr-frontend.vercel.app）**只有前端、無 API**，無法自動連動。做法改為 App 內手動新增「正職收入」來源（月薪），併進儀表板／學費與收入／收入分析。（進行中）
+- （目前無）正職收入已改用「上傳薪資單 PDF＋Gemini 判讀實領」完成（HR 系統無 API，不連動）。
