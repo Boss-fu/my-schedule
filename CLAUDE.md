@@ -24,7 +24,7 @@
 - 教師檔案中心：`addTeacherFileCenter` / `#fileStudent`（學生清單從 `#workStudent` 複製，會重試填充）。
 - 教師通知鈴鐺：`refreshBell`；家長通知：`startParentBell` / `enableTabNotices`。
 - **分頁整併（重要）**：教師端已無獨立「兼職薪資」「收入分析」分頁。導覽只剩 首頁／課次與月曆／學生課務／檔案中心／學費與收入／學習狀況／家長端預覽／個人課表／新增·管理行程。
-  - **首頁（`#home` / `renderHome`）**：儀表板指標 + **今天課程**（`#todayLessons`，當日家教課次＋兼職班次）+ 收入分析圖表（`#incomeTrend` 近12月堆疊、`#studentDonut` 學生占比、`#incomeSplit` 收入結構、`#incomeByEmployer` 各補習班兼職）。原「近六個月收入」`#incomeChart` 已移除，改由 12 個月趨勢取代。
+  - **首頁（`#home` / `renderHome`）**：強化版儀表板（`#dashboard`：紅色漸層 hero「本月總收入」卡＋左側色條的家教/兼職/正職/課堂指標；樣式在 teacher.html 內 `<style>` 的「首頁儀表板強化」段，`.metric.hero`/`--accent`）+ **今天課程**（`#todayLessons`，當日家教課次＋兼職班次）+ 收入分析圖表（趨勢圖 bar 加粗、加水平格線）（`#incomeTrend` 近12月堆疊、`#studentDonut` 學生占比、`#incomeSplit` 收入結構、`#incomeByEmployer` 各補習班兼職）。原「近六個月收入」`#incomeChart` 已移除，改由 12 個月趨勢取代。
   - **學費與收入（`#finance` / `renderFinance`）**：家教學費彙總 + 併入兼職（`#employerForm`/`#shiftForm`/薪資對帳單 `#statementEmployer`·`#statementMonth`·`#printStatement`）與正職薪資（Gemini 卡片）與 `#incomeStatMetrics`。
 - 兼職薪資：`wLoad` / `wRender` / `wRenderStatement`（對帳單：應領薪資 − 勞保自付 − 健保自付 = 實領＋核章欄）。資料表 `employers`(含 `default_rate`/`labor_insurance`/`health_insurance`)、`work_shifts`。UI 卡片現位於學費與收入分頁。
 - 收入分析：`renderIncomeStats`（家教＋兼職＋正職三來源；helper `shiftFee`=兼職毛額、`salaryFee`=正職實領）。填的元素散在首頁（趨勢/占比/結構/各補習班）與學費頁（`#incomeStatMetrics`），全部以 `if($(...))` 防呆。
