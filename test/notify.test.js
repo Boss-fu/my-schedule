@@ -28,6 +28,7 @@ const q = n => { const o = {
   select: () => o, order: () => o, eq: () => o, in: () => o, limit: () => o,
   insert: () => Promise.resolve({ data: null, error: null }), update: () => o, delete: () => o,
   single: () => Promise.resolve({ data: { role:'teacher', display_name:'T', is_active:true, must_change_password:false }, error:null }),
+  maybeSingle: () => Promise.resolve({ data: (rows(n)||[])[0] || null, error:null }),
   then: r => Promise.resolve({ data: rows(n), error: null }).then(r) }; return o; };
 const client = () => ({
   from: q, rpc: () => Promise.resolve({ data:null, error:null }),

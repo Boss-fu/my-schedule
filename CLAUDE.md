@@ -24,12 +24,13 @@
 - 教師檔案中心：`addTeacherFileCenter` / `#fileStudent`（學生清單從 `#workStudent` 複製，會重試填充）。
 - 教師通知鈴鐺：`refreshBell`；家長通知：`startParentBell` / `enableTabNotices`。
 - 兼職薪資（教師 `data-view="payroll"`）：`wLoad` / `wRender` / `wRenderStatement`（對帳單：應領薪資 − 勞保自付 − 健保自付 = 實領＋核章欄）。資料表 `employers`(含 `default_rate`/`labor_insurance`/`health_insurance`)、`work_shifts`。
-- 收入分析（教師 `data-view="incomeStats"`）：`renderIncomeStats`（家教＋兼職圖表；兼職收入 helper `shiftFee`，毛額計）。首頁/學費頁也已納入兼職（`shiftFee`）。
+- 收入分析（教師 `data-view="incomeStats"`）：`renderIncomeStats`（家教＋兼職＋正職三來源圖表；helper `shiftFee`=兼職毛額、`salaryFee`=正職實領）。首頁/學費頁/趨勢圖都已納入三來源。
+- 正職薪資單分析（教師 `incomeStats` 分頁尾端獨立 module）：上傳薪資單 PDF → 用使用者自己的 Gemini API（`generativelanguage.googleapis.com/.../{model}:generateContent`，`inline_data` 傳 base64 PDF）判讀「實領」→ regex `實領=數字` 自動填 `#salaryAmount` →「存本月正職收入」寫進 `site_settings` key `salary_income`（JSON `{月份:金額}`，`onConflict:'key'`）。金鑰/模型只存 localStorage（`bossfu-gemini-key`/`bossfu-gemini-model`，預設 `gemini-2.5-flash`）。月份取自 `window.BOSSFU_SHOWN_MONTH()`；存完呼叫 `window.BOSSFU_RELOAD()`。主模組 `salaryMap`＋`salaryFee` 讀此值。
 - 月曆拖曳／複製：teacher.html 尾端模組 `mMove`(搬移) / `mCopy`(複製)；月曆格帶 `data-date`、課次事件 `draggable`；主模組重載入口 `window.BOSSFU_RELOAD`（兼職/拖曳更動後連動刷新）。
 - 推播通知：`pwa.js` 的 `subscribePush` / `window.bossfuPush(ids,…)` / `bossfuPushRole('teacher',…)`；Edge Function `supabase/functions/send-push`（用 VAPID 密鑰）；`sw.js` 的 push/notificationclick。觸發點：開立學費單、老師傳檔/回饋、家長回饋。
 
 ## Supabase 資料表（線上實際）
-`profiles`(role: teacher/parent)、`students`、`parent_students`(多對多)、`lessons`、`messages`(有 `author_role`、`parent_id`)、`student_files`(有 `uploader_id`、`parent_id`)、`issued_invoices`(student_id, month, PK)、`site_settings`(key/value，如 finance_profile)、`employers`(兼職單位；`default_rate`/`labor_insurance`/`health_insurance`)、`work_shifts`(兼職班次；`employer_id`/`work_date`/`hours`/`rate`)、`push_subscriptions`(user_id/endpoint/p256dh/auth，推播訂閱)。Storage bucket：`exam-papers`（上傳已移除前端 10MB 限制；Storage 端仍有預設上限）。
+`profiles`(role: teacher/parent)、`students`、`parent_students`(多對多)、`lessons`、`messages`(有 `author_role`、`parent_id`)、`student_files`(有 `uploader_id`、`parent_id`)、`issued_invoices`(student_id, month, PK)、`site_settings`(key/value，如 `finance_profile`、`salary_income`＝正職各月實領 JSON)、`employers`(兼職單位；`default_rate`/`labor_insurance`/`health_insurance`)、`work_shifts`(兼職班次；`employer_id`/`work_date`/`hours`/`rate`)、`push_subscriptions`(user_id/endpoint/p256dh/auth，推播訂閱)。Storage bucket：`exam-papers`（上傳已移除前端 10MB 限制；Storage 端仍有預設上限）。
 - RLS 輔助函式：`is_teacher()`、`can_view_student(uuid)`。
 - 隱私隔離用 **restrictive** policy：`isolate parent messages` / `isolate parent files`（非老師只能 select `parent_id = auth.uid()`）。
 - **DDL 只能由使用者在 Supabase SQL Editor 執行**（環境無 DB 憑證）。改 schema 時要寫「可重複執行」的 SQL（`if not exists` / `drop policy if exists`）。
